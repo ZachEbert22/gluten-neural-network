@@ -1,0 +1,102 @@
+{
+    	"wheat flour":
+       	{
+		"substitute": "almond flour",
+	       	"ratio": 0.75
+	},
+    	"barley":
+       	{
+		"substitute": "buckwheat",
+	       	"ratio": 1.0
+	},
+    	"rye": 
+	{
+		"substitute": "oat flour",
+	       	"ratio": 1.0
+	},
+	"soy sauce":
+       	{
+		"substitute": "tamari sauce",
+	       	"ratio": 1.0
+	},
+	"bread":
+	{
+		"substitute": "gluten-free bread",
+		"ratio": 2.0
+	},
+	"cake batter":
+	{
+		"substitute": "gluten-free cake batter",
+		"ratio": 1.0
+	},
+	"flour tortilla":
+	{
+		"substitute": "corn tortilla",
+		"ratio": 2.0
+	},
+	"cookie dough":
+	{
+		"substitute": "gluten-free cookie dough",
+		"ratio": 1.0
+	},
+	"pasta":
+	{
+		"substitute": "gluten-free pasta",
+		"ratio": 1.0
+	},
+	"brownie batter":
+	{
+		"substitute": "gluten-free brownie batter",
+		"ratio": 1.0
+	},
+	"pancake":
+	{
+		"substitute": "gluten-free pancake",
+		"ratio": 1.5
+	},
+	"waffle":
+	{
+		"substitute": "gluten-free waffle",
+		"ratio": 1.0
+	},
+	"muffin":
+	{
+		"substitute": "gluten-free muffin",
+		"ratio": 1.0
+	},
+	"bread crumb":
+	{
+		"substitute": "gluten-free bread crumn",
+		"ratio": 1.0
+	},
+	"wonton wrapper":
+	{
+		"substitute": "springroll wrapper",
+		"ratio": 2.0
+	},
+	"puff pastry":
+	{
+		"substitute": "gluten-free puff pastry",
+		"ratio": 1.0
+	},
+	"crepe":
+	{
+		"substitute": "gluten-free crepe",
+		"ratio": 1.0
+	},
+	"beer":
+	{
+		"substitute": "gluten-free beer",
+		"ratio": 1.0
+	},
+	"graham cracker":
+	{
+		"substitute": "gluten-free graham cracker",
+		"ratio": 2.0
+	},
+	"cracker":
+	{
+		"substitute": "gluten-free cracker",
+		"ratio": 2.0
+	}
+}
