@@ -4,7 +4,7 @@ import pandas as pd
 import kagglehub
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
-import torch
+import torch, os, pickle
 from torch.utils.data import DataLoader, Dataset
 import torch.nn as nn
 import torch.optim as optim
@@ -59,7 +59,6 @@ def is_quantity_token(tok: str):
     tok = tok.strip()
     # pure numeric, fractions, mixed numbers like "1 1/2"
     return bool(re.fullmatch(r'[\d]+(?:\s+[\d/]+)?|[\d/]+(?:\s*[\d/]+)?|[\d]+\.[\d]+', tok))
-
 
 def pair_parts_and_quantities(parts_raw, quants_raw):
     """
@@ -120,6 +119,7 @@ def pair_parts_and_quantities(parts_raw, quants_raw):
         combined = combined.strip(' ,;')
         if combined:
             paired.append(combined)
+        #paired = [clean_text(x) for x in paired if x]
     return paired
 
 
@@ -307,6 +307,24 @@ def main():
         if not lst:
             continue
         process_recipe(lst, gluten_ingredients, substitutions)
+
+    import os, pickle, torch
+
+    # === SAVE TRAINED MODEL + VECTORIZER ===
+    SAVE_DIR = "models"
+    os.makedirs(SAVE_DIR, exist_ok=True)
+
+    model_path = os.path.join(SAVE_DIR, "model.pth")
+    vec_path = os.path.join(SAVE_DIR, "vectorizer.pkl")
+
+    # Save the model weights
+    torch.save(model.state_dict(), model_path)
+    print(f"✅ Saved trained model → {model_path}")
+
+    # Save the fitted vectorizer
+    with open(vec_path, "wb") as f:
+        pickle.dump(vectorizer, f)
+    print(f"✅ Saved fitted vectorizer → {vec_path}")
 
 
 if __name__ == "__main__":
