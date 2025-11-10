@@ -10,22 +10,25 @@ UNITS = [
 
 def clean_text(s: str) -> str:
     """
-    Normalize Unicode and fix split characters like 'mil k' → 'milk'
-    without merging valid pairs like 'soy sauce'.
+    Clean ingredient text without breaking apart valid tokens.
+    Ensures spaces between numbers, units, and words.
     """
     if not isinstance(s, str):
-        s = str(s)
+        return ""
+    # Normalize fractions and symbols
+    s = s.replace("⁄", "/").replace("½", "1/2").replace("¼", "1/4").replace("¾", "3/4")
+    s = re.sub(r"[\u00A0\u200B\u2009]", " ", s)
 
-    # Normalize and remove invisible unicode
-    s = unicodedata.normalize("NFKC", s)
-    s = re.sub(r"[\u200b-\u200f\u202a-\u202e]", "", s)
+    # ✅ Insert missing spaces between numbers and letters (e.g. 200gplain → 200 g plain)
+    s = re.sub(r"(?<=\d)([a-zA-Z])", r" \1", s)
+    s = re.sub(r"([a-zA-Z])(?=\d)", r"\1 ", s)
+    s = re.sub(r"([a-zA-Z])([A-Z])", r"\1 \2", s)
 
-    # Fix accidental single-letter splits: only merge consonant + consonant (e.g. 'eggplan t')
-    s = re.sub(r"([bcdfghjklmnpqrtvwxyz])\s+([bcdfghjklmnpqrtvwxyz])", r"\1\2", s, flags=re.IGNORECASE)
-
-    # Collapse multiple spaces
-    s = re.sub(r"\s+", " ", s)
-    return s.strip()
+    # Remove weird punctuation but keep fractions and dashes
+    s = re.sub(r"[^a-zA-Z0-9/\-\s]", "", s)
+    # Normalize spacing
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
 
 # ---------------------------
 # Ingredient Parser

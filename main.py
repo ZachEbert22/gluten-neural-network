@@ -63,19 +63,24 @@ def is_quantity_token(tok: str):
 def clean_text(s: str) -> str:
     """
     Clean ingredient text without breaking apart valid tokens.
+    Ensures spaces between numbers, units, and words.
     """
     if not isinstance(s, str):
         return ""
-    # Normalize unicode fractions (½, ⅓, etc.)
+    # Normalize fractions and symbols
     s = s.replace("⁄", "/").replace("½", "1/2").replace("¼", "1/4").replace("¾", "3/4")
-    # Replace weird non-breaking spaces or symbols
     s = re.sub(r"[\u00A0\u200B\u2009]", " ", s)
-    # Remove redundant punctuation while keeping word boundaries intact
-    s = re.sub(r"[^a-zA-Z0-9/.\-\s]", "", s)
+
+    # ✅ Insert missing spaces between numbers and letters (e.g. 200gplain → 200 g plain)
+    s = re.sub(r"(?<=\d)([a-zA-Z])", r" \1", s)
+    s = re.sub(r"([a-zA-Z])(?=\d)", r"\1 ", s)
+    s = re.sub(r"([a-zA-Z])([A-Z])", r"\1 \2", s)
+
+    # Remove weird punctuation but keep fractions and dashes
+    s = re.sub(r"[^a-zA-Z0-9/\-\s]", "", s)
     # Normalize spacing
     s = re.sub(r"\s+", " ", s).strip()
     return s
-
 
 def pair_parts_and_quantities(parts_raw, quants_raw):
     """
