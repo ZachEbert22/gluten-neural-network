@@ -39,18 +39,49 @@ substitutions = load_substitutions()
 # HELPER: EXTRACT RECIPE FROM URL
 # ------------------------------
 def extract_recipe_from_url(url: str):
+    """
+    Extract probable ingredient lines from a recipe URL.
+    Works on BBC GoodFood, AllRecipes, Food.com, Epicurious, etc.
+    """
     try:
         response = requests.get(url, timeout=10)
         soup = BeautifulSoup(response.text, "html.parser")
-        ingredients = []
 
-        # Common patterns for sites like AllRecipes, Food.com, Epicurious
-        possible_tags = soup.find_all(["li", "span"], string=re.compile(r"cup|tbsp|tsp|flour|sugar|salt|oil|egg", re.I))
-        for tag in possible_tags:
-            text = tag.get_text(strip=True)
-            if len(text.split()) > 1 and not re.search(r"reviews?|comments?", text, re.I):
-                ingredients.append(text)
-        ingredients = list(dict.fromkeys(ingredients))  # deduplicate
+        # 1️⃣ Try to find clearly labeled ingredient containers first
+        selectors = [
+            '[itemprop="recipeIngredient"]',
+            '.recipe-ingredients__list-item',
+            '.ingredients-item-name',
+            'li.ingredient',
+            'li.recipe-ingredients__list-item',
+            'span.ingredients-item-name',
+        ]
+        ingredients = []
+        for sel in selectors:
+            for tag in soup.select(sel):
+                text = tag.get_text(strip=True)
+                if text and len(text.split()) > 1:
+                    ingredients.append(text)
+
+        # 2️⃣ If none found, fall back to <li> tags with food-like patterns
+        if not ingredients:
+            for li in soup.find_all("li"):
+                text = li.get_text(strip=True)
+                # Must contain a measurement or common food keyword
+                if re.search(r'\b(cup|tsp|tbsp|ml|g|kg|flour|sugar|salt|oil|butter|milk|egg|spice|bread)\b', text, re.I):
+                    ingredients.append(text)
+
+        # 3️⃣ Filter obvious junk (marketing, instructions, signup, etc.)
+        junk_patterns = re.compile(
+            r"(newsletter|sign|subscribe|privacy|terms|method|cook|serves|crock|submit|share|nutrition|batch|reviews?)",
+            re.I,
+        )
+        ingredients = [i for i in ingredients if not junk_patterns.search(i)]
+
+        # 4️⃣ Deduplicate and clean spacing
+        ingredients = list(dict.fromkeys(ingredients))
+        ingredients = [re.sub(r"\s+", " ", i).strip() for i in ingredients]
+
         return ingredients[:15] if ingredients else []
     except Exception as e:
         st.error(f"Error extracting recipe: {e}")

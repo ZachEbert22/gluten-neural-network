@@ -60,23 +60,35 @@ def is_quantity_token(tok: str):
     # pure numeric, fractions, mixed numbers like "1 1/2"
     return bool(re.fullmatch(r'[\d]+(?:\s+[\d/]+)?|[\d/]+(?:\s*[\d/]+)?|[\d]+\.[\d]+', tok))
 
+def clean_text(s: str) -> str:
+    """
+    Clean ingredient text without breaking apart valid tokens.
+    """
+    if not isinstance(s, str):
+        return ""
+    # Normalize unicode fractions (½, ⅓, etc.)
+    s = s.replace("⁄", "/").replace("½", "1/2").replace("¼", "1/4").replace("¾", "3/4")
+    # Replace weird non-breaking spaces or symbols
+    s = re.sub(r"[\u00A0\u200B\u2009]", " ", s)
+    # Remove redundant punctuation while keeping word boundaries intact
+    s = re.sub(r"[^a-zA-Z0-9/.\-\s]", "", s)
+    # Normalize spacing
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
 def pair_parts_and_quantities(parts_raw, quants_raw):
     """
     Input: raw values from RecipeIngredientParts and RecipeIngredientQuantities columns
     Output: list of cleaned ingredient strings like "1 cup flour" or "flour"
-    Strategy:
-      - parse both as lists (de_r_list)
-      - for each index i, if quantity exists and isn't blank, prefix quantity to part
-      - if parts list longer/shorter handle gracefully
-      - drop tokens that are purely numeric and not ingredient-like
     """
     parts = de_r_list(parts_raw)
     quants = de_r_list(quants_raw)
 
-    # If both are single strings containing many items (not ideal), try splitting on semicolons/newlines
-    if len(parts) == 1 and "," in parts[0] and len(parts[0].split(",")) > 1:
+    # Handle list-like strings
+    if len(parts) == 1 and "," in parts[0]:
         parts = [p.strip() for p in parts[0].split(",") if p.strip()]
-    if len(quants) == 1 and "," in quants[0] and len(quants[0].split(",")) > 1:
+    if len(quants) == 1 and "," in quants[0]:
         quants = [p.strip() for p in quants[0].split(",") if p.strip()]
 
     paired = []
@@ -85,41 +97,30 @@ def pair_parts_and_quantities(parts_raw, quants_raw):
         part = parts[i] if i < len(parts) else ""
         quant = quants[i] if i < len(quants) else ""
 
-        # Clean internal junk like leading/trailing quotes
         part = str(part).strip().strip('"').strip("'")
         quant = str(quant).strip().strip('"').strip("'")
 
-        # If part looks like a numeric token (dataset inconsistencies), try flip with quant
-        if part and is_quantity_token(part) and (not part.lower().startswith("na")):
-            # If the quantity list contains actual ingredient names in same index, flip
-            # i.e., sometimes columns are swapped; we'll try to keep the non-numeric as part
+        if part and is_quantity_token(part):
             if i < len(quants) and not is_quantity_token(quants[i]):
-                tmp = part
-                part = quants[i]
-                quant = tmp
+                part, quant = quants[i], part
 
-        # If part is empty but quant contains a descriptive phrase, use quant as part
         if (not part or part.lower() in ["na", "nan", ""]) and quant and not is_quantity_token(quant):
-            part = quant
-            quant = ""
+            part, quant = quant, ""
 
-        # Drop pure-numeric parts (like "4")
-        if is_quantity_token(part) and (not quant):
-            # skip adding a lone number
+        if is_quantity_token(part) and not quant:
             continue
 
-        # Build final string
-        if quant and not quant.lower() in ["na", "nan", ""]:
+        if quant and quant.lower() not in ["na", "nan", ""]:
             combined = f"{quant} {part}".strip()
         else:
-            combined = f"{part}".strip()
+            combined = part.strip()
 
-        # final cleanup: remove leading stray commas/parentheses/extra c( markers
-        combined = re.sub(r'(^c\(|\)$)', '', combined).strip()
-        combined = combined.strip(' ,;')
+        combined = re.sub(r'(^c\(|\)$)', '', combined).strip(' ,;')
         if combined:
             paired.append(combined)
-        #paired = [clean_text(x) for x in paired if x]
+
+    # ✅ Apply cleaning to final strings
+    paired = [clean_text(x) for x in paired if x]
     return paired
 
 
