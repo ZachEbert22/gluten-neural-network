@@ -4,73 +4,94 @@ import pickle
 import requests
 import re
 from bs4 import BeautifulSoup
-import pandas as pd
+
 from models.gluten_model import GlutenSubstitutionNet
-from utils.parser import parse_ingredient, format_ingredient
+from utils.parser import parse_ingredient, format_ingredient, clean_text
 from utils.gluten_check import load_gluten_ingredients, load_substitutions
 from utils.substitution import substitute_ingredient
+
+# transformer imports
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-# ------------------------------
-# LOAD MODEL + VECTORIZER
-# ------------------------------
-clf_tokenizer = AutoTokenizer.from_pretrained("models/ingredient_classifier")
-clf_model = AutoModelForSequenceClassification.from_pretrained("models/ingredient_classifier")
 
-def is_real_ingredient(text):
-    inputs = clf_tokenizer(text, return_tensors="pt", truncation=True)
-    outputs = clf_model(**inputs)
-    pred = torch.argmax(outputs.logits, dim=1).item()
-    return pred == 1
-
-
+# ============================================================
+# LOAD MAIN MODEL + VECTORIZER
+# ============================================================
 @st.cache_resource
-def load_model_and_vectorizer(model_path="models/model.pth", vec_path="models/vectorizer.pkl"):
+def load_model_and_vectorizer(
+    model_path="models/model.pth",
+    vec_path="models/vectorizer.pkl",
+):
     with open(vec_path, "rb") as f:
         vectorizer = pickle.load(f)
 
-    # Dynamically detect num_substitutes from checkpoint
     checkpoint = torch.load(model_path, map_location="cpu")
-    num_subs = checkpoint["out_substitute.weight"].shape[0] if "out_substitute.weight" in checkpoint else 5
+
+    if "state_dict" in checkpoint:
+        state = checkpoint["state_dict"]
+    else:
+        state = checkpoint
+
+    out_key = next((k for k in state.keys() if "out_substitute.weight" in k), None)
+    num_subs = state[out_key].shape[0] if out_key else 5
 
     model = GlutenSubstitutionNet(
         input_dim=len(vectorizer.get_feature_names_out()),
         hidden_dim=128,
-        num_substitutes=num_subs
+        num_substitutes=num_subs,
     )
-    model.load_state_dict(checkpoint)
+
+    if "state_dict" in checkpoint:
+        model.load_state_dict(checkpoint["state_dict"])
+    else:
+        model.load_state_dict(checkpoint)
+
     model.eval()
     return model, vectorizer
 
+
+# ============================================================
+# LOAD TRANSFORMER INGREDIENT CLASSIFIER
+# ============================================================
+@st.cache_resource
+def load_transformer_classifier(model_dir="models/ingredient_classifier"):
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_dir)
+        clf = AutoModelForSequenceClassification.from_pretrained(model_dir)
+        clf.eval()
+        return tokenizer, clf
+    except Exception as e:
+        st.warning(f"Ingredient classifier not available: {e}")
+        return None, None
+
+
 model, vectorizer = load_model_and_vectorizer()
+tokenizer, clf_model = load_transformer_classifier()
 gluten_ingredients = load_gluten_ingredients()
 substitutions = load_substitutions()
 
-# ------------------------------
-# LOAD TRANSFORMER FILTER
-# ------------------------------
-@st.cache_resource
-def load_ingredient_classifier():
-    tokenizer = AutoTokenizer.from_pretrained("models/ingredient_classifier")
-    clf_model = AutoModelForSequenceClassification.from_pretrained("models/ingredient_classifier")
-    clf_model.eval()
-    return tokenizer, clf_model
 
-tokenizer, clf_model = load_ingredient_classifier()
+# ============================================================
+# TRANSFORMER-BASED INGREDIENT PREDICTOR
+# ============================================================
+def is_ingredient_line_transformer(text):
+    if tokenizer is None or clf_model is None:
+        return None  # fallback to heuristics
+    tokens = tokenizer(text, return_tensors="pt", truncation=True, max_length=128)
+    with torch.no_grad():
+        logits = clf_model(**tokens).logits
+    return bool(torch.argmax(logits, dim=-1).item())
 
-# ------------------------------
-# HELPER: EXTRACT RECIPE FROM URL
-# ------------------------------
+
+# ============================================================
+# URL INGREDIENT EXTRACTION
+# ============================================================
 def extract_recipe_from_url(url: str):
-    """
-    Extract probable ingredient lines from a recipe URL.
-    Works on BBC GoodFood, AllRecipes, Food.com, Epicurious, etc.
-    """
     try:
-        response = requests.get(url, timeout=10)
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, timeout=10, headers=headers)
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # 1️⃣ Try to find clearly labeled ingredient containers first
         selectors = [
             '[itemprop="recipeIngredient"]',
             '.recipe-ingredients__list-item',
@@ -79,53 +100,40 @@ def extract_recipe_from_url(url: str):
             'li.recipe-ingredients__list-item',
             'span.ingredients-item-name',
         ]
-        ingredients = []
+
+        candidates = []
         for sel in selectors:
             for tag in soup.select(sel):
-                text = tag.get_text(strip=True)
-                if text and len(text.split()) > 1:
-                    ingredients.append(text)
+                txt = clean_text(tag.get_text(" ", strip=True))
+                if txt and len(txt.split()) > 1:
+                    candidates.append(txt)
 
-        # 2️⃣ If none found, fall back to <li> tags with food-like patterns
-        if not ingredients:
+        # fallback heuristic
+        if not candidates:
             for li in soup.find_all("li"):
-                text = li.get_text(strip=True)
-                # Must contain a measurement or common food keyword
-                if re.search(r'\b(cup|tsp|tbsp|ml|g|kg|flour|sugar|salt|oil|butter|milk|egg|spice|bread)\b', text, re.I):
-                    ingredients.append(text)
+                txt = clean_text(li.get_text(" ", strip=True))
+                if re.search(r"(cup|tbsp|g|kg|ml|flour|sugar|butter|milk|egg)", txt, re.I):
+                    candidates.append(txt)
 
-        # 3️⃣ Filter obvious junk (marketing, instructions, signup, etc.)
-        junk_patterns = re.compile(
-            r"(newsletter|sign|subscribe|privacy|terms|method|cook|serves|crock|submit|share|nutrition|batch|reviews?)",
-            re.I,
-        )
-        ingredients = [i for i in ingredients if not junk_patterns.search(i)]
+        candidates = list(dict.fromkeys(candidates))
 
-        # 4⃣ Deduplicate and clean spacing
-        ingredients = list(dict.fromkeys(ingredients))
-        ingredients = [re.sub(r"\s+", " ", i).strip() for i in ingredients]
-
-        # 5⃣ Transformer-based filtering
+        # Transformer filtering
         filtered = []
-        for ing in ingredients:
-            if is_ingredient_line(ing):   # 🚀 FILTER HERE
-                filtered.append(ing)
+        for c in candidates:
+            pred = is_ingredient_line_transformer(c)
+            if pred is None:
+                # no transformer -> heuristic
+                if re.search(r"(cup|g|kg|ml|flour|sugar|butter)", c, re.I):
+                    filtered.append(c)
+            else:
+                if pred:
+                    filtered.append(c)
 
-        return filtered[:15] if filtered else []
+        return filtered[:30]
 
     except Exception as e:
         st.error(f"Error extracting recipe: {e}")
         return []
-
-def is_ingredient_line(text):
-    """Use transformer classifier to decide if text looks like an ingredient."""
-    tokens = tokenizer(text, return_tensors="pt", truncation=True)
-    with torch.no_grad():
-        logits = clf_model(**tokens).logits
-    pred = logits.argmax().item()
-    return pred == 1  # 1 = INGREDIENT, 0 = NOT
-
-
 # ------------------------------
 # UI SECTION
 # ------------------------------
