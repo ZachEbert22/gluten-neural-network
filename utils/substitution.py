@@ -1,15 +1,18 @@
 def substitute_ingredient(parsed_ingredient, substitutions):
-    """
-    parsed_ingredient: dict with keys 'quantity','unit','ingredient'
-    substitutions: mapping from gluten-key -> {substitute, ratio}
-    """
     name = parsed_ingredient["ingredient"].lower()
-    try:
-        quantity = float(parsed_ingredient.get("quantity") or 1)
-    except Exception:
-        quantity = 1.0
-    unit = parsed_ingredient.get("unit", "")
+    quantity = float(parsed_ingredient["quantity"] or 1)
+    unit = parsed_ingredient["unit"]
 
+    # Normalize flour types (plain, self-raising, etc.)
+    if "flour" in name and "gluten-free" not in name:
+        # Match to closest key (default to wheat flour)
+        key = "wheat flour" if "wheat" in substitutions else list(substitutions.keys())[0]
+        details = substitutions.get(key, {"substitute": "almond flour", "ratio": 0.75})
+        ratio = details.get("ratio", 1.0)
+        new_quantity = round(quantity * ratio, 2)
+        return {"quantity": str(new_quantity), "unit": unit, "ingredient": details["substitute"]}
+
+    # Otherwise, try direct matches
     for gluten_item, details in substitutions.items():
         if gluten_item in name:
             ratio = details.get("ratio", 1.0)
@@ -17,16 +20,10 @@ def substitute_ingredient(parsed_ingredient, substitutions):
             return {
                 "quantity": str(new_quantity),
                 "unit": unit,
-                "ingredient": details["substitute"]
+                "ingredient": details["substitute"],
             }
 
-    # No substitution
-    return {
-        "quantity": str(parsed_ingredient.get("quantity", "1")),
-        "unit": parsed_ingredient.get("unit", ""),
-        "ingredient": parsed_ingredient.get("ingredient", "")
-    }
-
+    return parsed_ingredient
 
 def substitution_accuracy(original, modified, gluten_ingredients):
     """
