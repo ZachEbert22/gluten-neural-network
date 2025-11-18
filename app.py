@@ -9,10 +9,21 @@ from models.gluten_model import GlutenSubstitutionNet
 from utils.parser import parse_ingredient, format_ingredient
 from utils.gluten_check import load_gluten_ingredients, load_substitutions
 from utils.substitution import substitute_ingredient
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 # ------------------------------
 # LOAD MODEL + VECTORIZER
 # ------------------------------
+clf_tokenizer = AutoTokenizer.from_pretrained("models/ingredient_classifier")
+clf_model = AutoModelForSequenceClassification.from_pretrained("models/ingredient_classifier")
+
+def is_real_ingredient(text):
+    inputs = clf_tokenizer(text, return_tensors="pt", truncation=True)
+    outputs = clf_model(**inputs)
+    pred = torch.argmax(outputs.logits, dim=1).item()
+    return pred == 1
+
+
 @st.cache_resource
 def load_model_and_vectorizer(model_path="models/model.pth", vec_path="models/vectorizer.pkl"):
     with open(vec_path, "rb") as f:
@@ -34,6 +45,18 @@ def load_model_and_vectorizer(model_path="models/model.pth", vec_path="models/ve
 model, vectorizer = load_model_and_vectorizer()
 gluten_ingredients = load_gluten_ingredients()
 substitutions = load_substitutions()
+
+# ------------------------------
+# LOAD TRANSFORMER FILTER
+# ------------------------------
+@st.cache_resource
+def load_ingredient_classifier():
+    tokenizer = AutoTokenizer.from_pretrained("models/ingredient_classifier")
+    clf_model = AutoModelForSequenceClassification.from_pretrained("models/ingredient_classifier")
+    clf_model.eval()
+    return tokenizer, clf_model
+
+tokenizer, clf_model = load_ingredient_classifier()
 
 # ------------------------------
 # HELPER: EXTRACT RECIPE FROM URL
@@ -78,14 +101,30 @@ def extract_recipe_from_url(url: str):
         )
         ingredients = [i for i in ingredients if not junk_patterns.search(i)]
 
-        # 4️⃣ Deduplicate and clean spacing
+        # 4⃣ Deduplicate and clean spacing
         ingredients = list(dict.fromkeys(ingredients))
         ingredients = [re.sub(r"\s+", " ", i).strip() for i in ingredients]
 
-        return ingredients[:15] if ingredients else []
+        # 5⃣ Transformer-based filtering
+        filtered = []
+        for ing in ingredients:
+            if is_ingredient_line(ing):   # 🚀 FILTER HERE
+                filtered.append(ing)
+
+        return filtered[:15] if filtered else []
+
     except Exception as e:
         st.error(f"Error extracting recipe: {e}")
         return []
+
+def is_ingredient_line(text):
+    """Use transformer classifier to decide if text looks like an ingredient."""
+    tokens = tokenizer(text, return_tensors="pt", truncation=True)
+    with torch.no_grad():
+        logits = clf_model(**tokens).logits
+    pred = logits.argmax().item()
+    return pred == 1  # 1 = INGREDIENT, 0 = NOT
+
 
 # ------------------------------
 # UI SECTION
