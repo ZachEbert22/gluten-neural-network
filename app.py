@@ -6,134 +6,89 @@ import re
 from bs4 import BeautifulSoup
 
 from models.gluten_model import GlutenSubstitutionNet
-from utils.parser import parse_ingredient, format_ingredient, clean_text
+from models.ingredient_classifier.predict import (
+    load_transformer_classifier,
+    is_ingredient_line_transformer
+)
+from models.bert_embedder.embedder import BertEmbedder
+
+from utils.parser import parse_ingredient, format_ingredient
 from utils.gluten_check import load_gluten_ingredients, load_substitutions
 from utils.substitution import substitute_ingredient
 
-# transformer imports
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-
-# ============================================================
-# LOAD MAIN MODEL + VECTORIZER
-# ============================================================
+# ------------------------------------------------
+# Load MLP substitution model
+# ------------------------------------------------
 @st.cache_resource
-def load_model_and_vectorizer(
-    model_path="models/model.pth",
-    vec_path="models/vectorizer.pkl",
-):
-    with open(vec_path, "rb") as f:
+def load_mlp_model():
+    with open("models/vectorizer.pkl", "rb") as f:
         vectorizer = pickle.load(f)
 
-    checkpoint = torch.load(model_path, map_location="cpu")
-
-    if "state_dict" in checkpoint:
-        state = checkpoint["state_dict"]
-    else:
-        state = checkpoint
-
-    out_key = next((k for k in state.keys() if "out_substitute.weight" in k), None)
-    num_subs = state[out_key].shape[0] if out_key else 5
+    checkpoint = torch.load("models/model.pth", map_location="cpu")
+    num_subs = checkpoint["out_substitute.weight"].shape[0]
 
     model = GlutenSubstitutionNet(
         input_dim=len(vectorizer.get_feature_names_out()),
         hidden_dim=128,
-        num_substitutes=num_subs,
+        num_substitutes=num_subs
     )
-
-    if "state_dict" in checkpoint:
-        model.load_state_dict(checkpoint["state_dict"])
-    else:
-        model.load_state_dict(checkpoint)
-
+    model.load_state_dict(checkpoint)
     model.eval()
     return model, vectorizer
 
 
-# ============================================================
-# LOAD TRANSFORMER INGREDIENT CLASSIFIER
-# ============================================================
-@st.cache_resource
-def load_transformer_classifier(model_dir="models/ingredient_classifier"):
-    try:
-        tokenizer = AutoTokenizer.from_pretrained(model_dir)
-        clf = AutoModelForSequenceClassification.from_pretrained(model_dir)
-        clf.eval()
-        return tokenizer, clf
-    except Exception as e:
-        st.warning(f"Ingredient classifier not available: {e}")
-        return None, None
+mlp_model, vectorizer = load_mlp_model()
+bert_embedder = BertEmbedder()
+clf_model, clf_tokenizer = load_transformer_classifier()
 
-
-model, vectorizer = load_model_and_vectorizer()
-tokenizer, clf_model = load_transformer_classifier()
 gluten_ingredients = load_gluten_ingredients()
 substitutions = load_substitutions()
 
 
-# ============================================================
-# TRANSFORMER-BASED INGREDIENT PREDICTOR
-# ============================================================
-def is_ingredient_line_transformer(text):
-    if tokenizer is None or clf_model is None:
-        return None  # fallback to heuristics
-    tokens = tokenizer(text, return_tensors="pt", truncation=True, max_length=128)
-    with torch.no_grad():
-        logits = clf_model(**tokens).logits
-    return bool(torch.argmax(logits, dim=-1).item())
-
-
-# ============================================================
-# URL INGREDIENT EXTRACTION
-# ============================================================
-def extract_recipe_from_url(url: str):
+# ------------------------------------------------
+# Better URL extraction using BERT ingredient classifier
+# ------------------------------------------------
+def extract_recipe_from_url(url):
     try:
-        headers = {"User-Agent": "Mozilla/5.0"}
-        response = requests.get(url, timeout=10, headers=headers)
-        soup = BeautifulSoup(response.text, "html.parser")
+        r = requests.get(url, timeout=10)
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        candidates = []
 
         selectors = [
             '[itemprop="recipeIngredient"]',
-            '.recipe-ingredients__list-item',
             '.ingredients-item-name',
+            '.recipe-ingredients__list-item',
             'li.ingredient',
-            'li.recipe-ingredients__list-item',
-            'span.ingredients-item-name',
         ]
 
-        candidates = []
+        # direct ingredient selectors
         for sel in selectors:
             for tag in soup.select(sel):
-                txt = clean_text(tag.get_text(" ", strip=True))
-                if txt and len(txt.split()) > 1:
-                    candidates.append(txt)
+                txt = tag.get_text(strip=True)
+                candidates.append(txt)
 
-        # fallback heuristic
+        # fallback: any LI with ingredient-like patterns
         if not candidates:
             for li in soup.find_all("li"):
-                txt = clean_text(li.get_text(" ", strip=True))
-                if re.search(r"(cup|tbsp|g|kg|ml|flour|sugar|butter|milk|egg)", txt, re.I):
+                txt = li.get_text(strip=True)
+                if re.search(r"(cup|tsp|tbsp|g|kg|flour|sugar|butter)", txt, re.I):
                     candidates.append(txt)
 
-        candidates = list(dict.fromkeys(candidates))
+        # FILTER USING THE TRANSFORMER CLASSIFIER
+        cleaned = []
+        for line in candidates:
+            if is_ingredient_line_transformer(line, clf_model, clf_tokenizer):
+                cleaned.append(line)
 
-        # Transformer filtering
-        filtered = []
-        for c in candidates:
-            pred = is_ingredient_line_transformer(c)
-            if pred is None:
-                # no transformer -> heuristic
-                if re.search(r"(cup|g|kg|ml|flour|sugar|butter)", c, re.I):
-                    filtered.append(c)
-            else:
-                if pred:
-                    filtered.append(c)
-
-        return filtered[:30]
+        cleaned = list(dict.fromkeys(cleaned))
+        return cleaned[:20]
 
     except Exception as e:
         st.error(f"Error extracting recipe: {e}")
         return []
+
 # ------------------------------
 # UI SECTION
 # ------------------------------
