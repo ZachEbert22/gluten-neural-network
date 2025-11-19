@@ -1,99 +1,106 @@
 import os
 import pandas as pd
-import torch
-from datasets import Dataset
 from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification,
     TrainingArguments,
     Trainer,
 )
+from sklearn.model_selection import train_test_split
+from datasets import Dataset
 
-DATA_PATH = "data/ingredient_classifier_dataset.csv"
-MODEL_DIR = "models/ingredient_classifier"
-PRETRAIN = "distilbert-base-uncased"
+DATASET_PATH = "data/ingredient_dataset.csv"
+MODEL_OUT = "models/ingredient_classifier"
+
+os.makedirs(MODEL_OUT, exist_ok=True)
+
+MODEL_NAME = "distilbert-base-uncased"
 
 
-def main():
-    os.makedirs(MODEL_DIR, exist_ok=True)
+# -------------------------------------------------------
+# Load dataset
+# -------------------------------------------------------
+def load_dataset():
+    df = pd.read_csv(DATASET_PATH)
+    df = df.sample(frac=1).reset_index(drop=True)
 
-    print("Loading:", DATA_PATH)
-    df = pd.read_csv(DATA_PATH)
-    assert "text" in df.columns and "label" in df.columns
+    train_df, val_df = train_test_split(df, test_size=0.1, random_state=42)
 
-    # Shuffle and split
-    ds = Dataset.from_pandas(df.sample(frac=1, random_state=42).reset_index(drop=True))
-    split = ds.train_test_split(test_size=0.1, seed=42)
-    train_ds, eval_ds = split["train"], split["test"]
+    return Dataset.from_pandas(train_df), Dataset.from_pandas(val_df)
 
-    tokenizer = AutoTokenizer.from_pretrained(PRETRAIN)
 
-    def preprocess(batch):
-        return tokenizer(
-            batch["text"],
-            padding="max_length",
-            truncation=True,
-            max_length=128,
-        )
-
-    train_ds = train_ds.map(preprocess, batched=True)
-    eval_ds = eval_ds.map(preprocess, batched=True)
-
-    train_ds.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
-    eval_ds.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
-
-    model = AutoModelForSequenceClassification.from_pretrained(
-        PRETRAIN, num_labels=2
+# -------------------------------------------------------
+# Tokenization
+# -------------------------------------------------------
+def tokenize_fn(batch):
+    return tokenizer(
+        batch["text"],
+        truncation=True,
+        padding="max_length",
+        max_length=128,
     )
 
-    # FIX FOR Older Transformers — fallback argument names
-    try:
-        args = TrainingArguments(
-            output_dir=MODEL_DIR,
-            evaluation_strategy="epoch",
-            save_strategy="epoch",
-            num_train_epochs=3,
-            learning_rate=3e-5,
-            per_device_train_batch_size=8,
-            per_device_eval_batch_size=8,
-            load_best_model_at_end=True,
-            metric_for_best_model="eval_loss",
-            save_total_limit=2,
-        )
-    except TypeError:
-        # Old versions use "eval_strategy"
-        args = TrainingArguments(
-            output_dir=MODEL_DIR,
-            eval_strategy="epoch",   # fallback
-            save_strategy="epoch",
-            num_train_epochs=3,
-            learning_rate=3e-5,
-            per_device_train_batch_size=8,
-            per_device_eval_batch_size=8,
-        )
 
-    def compute_metrics(eval_pred):
-        logits, labels = eval_pred
-        preds = logits.argmax(-1)
-        acc = (preds == labels).astype(float).mean().item()
-        return {"accuracy": acc}
+# -------------------------------------------------------
+# Main training routine
+# -------------------------------------------------------
+def main():
+    global tokenizer
+
+    print("Loading dataset…")
+    train_ds, val_ds = load_dataset()
+
+    print("Loading tokenizer/model…")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_NAME,
+        num_labels=2
+    )
+
+    print("Tokenizing…")
+    train_ds = train_ds.map(tokenize_fn, batched=True)
+    val_ds = val_ds.map(tokenize_fn, batched=True)
+
+    train_ds = train_ds.remove_columns(["text"])
+    val_ds = val_ds.remove_columns(["text"])
+
+    train_ds = train_ds.rename_column("label", "labels")
+    val_ds = val_ds.rename_column("label", "labels")
+
+    train_ds.set_format("torch")
+    val_ds.set_format("torch")
+
+    training_args = TrainingArguments(
+        output_dir=MODEL_OUT,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        num_train_epochs=2,
+        learning_rate=2e-5,
+        weight_decay=0.01,
+        load_best_model_at_end=True,
+        logging_steps=50
+    )
 
     trainer = Trainer(
         model=model,
-        args=args,
+        args=training_args,
         train_dataset=train_ds,
-        eval_dataset=eval_ds,
-        compute_metrics=compute_metrics,
+        eval_dataset=val_ds,
     )
 
+    print("Training…")
     trainer.train()
 
-    tokenizer.save_pretrained(MODEL_DIR)
-    trainer.save_model(MODEL_DIR)
+    print("Saving model…")
+    trainer.save_model(MODEL_OUT)
+    tokenizer.save_pretrained(MODEL_OUT)
 
-    print("Saved model →", MODEL_DIR)
+    print(f"Model saved to: {MODEL_OUT}")
 
 
+# -------------------------------------------------------
 if __name__ == "__main__":
     main()
 

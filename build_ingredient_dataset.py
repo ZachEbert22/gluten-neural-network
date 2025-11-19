@@ -1,100 +1,105 @@
-import os
+import kagglehub
 import pandas as pd
-from kaggle.api.kaggle_api_extended import KaggleApi
-from pathlib import Path
 import re
 import random
+import os
+import ast
 
-# ------------------------------
-# LOAD KAGGLE DATASET DIRECTLY
-# ------------------------------
-def load_kaggle_dataset(handle: str, file_name="recipes.csv"):
-    api = KaggleApi()
-    api.authenticate()
+OUT_PATH = "data/ingredient_dataset.csv"
+os.makedirs("data", exist_ok=True)
 
-    out_dir = Path("data/kaggle_cache") / handle.replace("/", "_")
-    out_dir.mkdir(parents=True, exist_ok=True)
+# Ingredient detection regex
+ING_PATTERN = re.compile(
+    r"(cup|tbsp|tsp|g|kg|oz|ml|salt|flour|sugar|oil|butter|egg|spice|milk|yeast|baking|soda|powder|vanilla|onion|garlic|pepper|water)",
+    re.I
+)
 
-    if not (out_dir / file_name).exists():
-        api.dataset_download_file(handle, file_name, path=str(out_dir))
-        zip_file = out_dir / f"{file_name}.zip"
-
-        # Extract
-        import zipfile
-        with zipfile.ZipFile(zip_file, "r") as z:
-            z.extractall(out_dir)
-        zip_file.unlink()
-
-    return pd.read_csv(out_dir / file_name)
+def looks_like_ingredient(x: str) -> bool:
+    if not isinstance(x, str):
+        return False
+    if len(x.split()) < 2:
+        return False
+    return ING_PATTERN.search(x) is not None
 
 
-# ------------------------------
-# CLEAN INGREDIENT STRING
-# ------------------------------
-def clean_ing_text(text: str):
-    if not isinstance(text, str):
-        return ""
-    text = re.sub(r"[^\w\s/.-]", " ", text)  # remove symbols
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+def load_foodcom():
+    """
+    Loads the REAL filenames from Food.com Kaggle dataset.
+    """
+    print("Downloading Food.com dataset via kagglehub…")
+    path = kagglehub.dataset_download("irkaal/foodcom-recipes-and-reviews")
+    print("Dataset path:", path)
+
+    recipes_path = f"{path}/recipes.csv"
+    reviews_path = f"{path}/reviews.csv"
+
+    if not os.path.exists(recipes_path):
+        raise RuntimeError(f"recipes.csv not found. Found: {os.listdir(path)}")
+
+    df_recipes = pd.read_csv(recipes_path)
+    df_reviews = pd.read_csv(reviews_path)
+
+    print("Loaded:", df_recipes.shape, df_reviews.shape)
+    return df_recipes, df_reviews
 
 
-# ------------------------------
-# BUILD DATASET
-# ------------------------------
-def build_dataset(output_csv="data/bert_ingredient_dataset.csv", sample_size=15000):
-    df = load_kaggle_dataset("irkaal/foodcom-recipes")   # <--- THIS IS WHAT YOU ASKED FOR
+def build_dataset():
+    df_recipes, df_reviews = load_foodcom()
 
-    print(f"Loaded {len(df)} recipe rows from Kaggle.")
+    # -------------------------------
+    # CHECK FOR REAL COLUMNS
+    # -------------------------------
+    if "RecipeIngredientParts" not in df_recipes.columns:
+        raise RuntimeError(
+            "ERROR: Expected 'RecipeIngredientParts' in recipes.csv\n"
+            f"Columns found: {df_recipes.columns}"
+        )
 
-    all_lines = []
+    print("Extracting ingredient lines…")
 
-    # Food.com dataset stores ingredients in R-style:
-    # c("1 cup", "all-purpose flour")
-    for idx, row in df.iterrows():
-        parts_raw = row.get("RecipeIngredientParts", "[]")
-        quants_raw = row.get("RecipeIngredientQuantities", "[]")
+    pos_samples = []
 
+    # ------------------------------------
+    # PARSE LIST-LIKE STRING FIELDS
+    # ------------------------------------
+    for raw in df_recipes["RecipeIngredientParts"].dropna():
         try:
-            parts = eval(parts_raw) if isinstance(parts_raw, str) else []
-            quants = eval(quants_raw) if isinstance(quants_raw, str) else []
+            parts = ast.literal_eval(raw) if isinstance(raw, str) else raw
         except:
             continue
 
-        for p, q in zip(parts, quants):
-            p = clean_ing_text(str(p))
-            q = clean_ing_text(str(q))
-            line = f"{q} {p}".strip()
-            if len(line.split()) >= 2:
-                all_lines.append(line)
+        if not isinstance(parts, (list, tuple)):
+            continue
 
-    # Deduplicate
-    all_lines = list(sorted(set(all_lines)))
+        for ing in parts:
+            if looks_like_ingredient(ing):
+                pos_samples.append(ing)
 
-    # Keep only sample_size
-    if len(all_lines) > sample_size:
-        all_lines = random.sample(all_lines, sample_size)
+    print("Positive samples collected:", len(pos_samples))
 
-    # Build training set:
+    # --------------------------
+    # NEGATIVE SAMPLES (reviews)
+    # --------------------------
+    neg_samples = [
+        txt for txt in df_reviews["review"].dropna().tolist()
+        if not looks_like_ingredient(txt)
+    ]
+    random.shuffle(neg_samples)
+    neg_samples = neg_samples[:len(pos_samples)]  # balance dataset
+
+    print("Negative samples used:", len(neg_samples))
+
+    # --------------------------
+    # BUILD BALANCED DATASET
+    # --------------------------
     df_out = pd.DataFrame({
-        "text": all_lines,
-        "label": [1] * len(all_lines)   # Ingredient = 1
-    })
+        "text": pos_samples + neg_samples,
+        "label": [1]*len(pos_samples) + [0]*len(neg_samples)
+    }).sample(frac=1).reset_index(drop=True)
 
-    # Add negative examples from instructions/descriptions
-    neg = df["Instructions"].dropna().sample(len(df_out)//2, replace=True)
-    neg_clean = neg.apply(clean_ing_text)
-    neg_clean = neg_clean[neg_clean.apply(lambda x: len(x.split()) >= 4)]
-
-    df_neg = pd.DataFrame({
-        "text": neg_clean,
-        "label": [0] * len(neg_clean)
-    })
-
-    final = pd.concat([df_out, df_neg], ignore_index=True)
-    final.to_csv(output_csv, index=False)
-
-    print(f"Saved ingredient dataset: {output_csv} ({len(final)} lines)")
+    df_out.to_csv(OUT_PATH, index=False)
+    print(f"Saved dataset → {OUT_PATH}")
+    print(df_out.head())
 
 
 if __name__ == "__main__":
