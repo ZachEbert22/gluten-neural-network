@@ -80,10 +80,27 @@ def build_dataset():
     # --------------------------
     # NEGATIVE SAMPLES (reviews)
     # --------------------------
+    # Determine correct review column
+    possible_review_cols = ["review", "Review", "review_text", "text", "comment"]
+    review_col = None
+    for col in possible_review_cols:
+        if col in df_reviews.columns:
+            review_col = col
+            break
+
+    if review_col is None:
+        raise RuntimeError(
+            f"No valid review text column found in df_reviews.\n"
+            f"Columns available: {df_reviews.columns.tolist()}"
+        )
+
+    print(f"Using review column: '{review_col}'")
+
     neg_samples = [
-        txt for txt in df_reviews["review"].dropna().tolist()
+        txt for txt in df_reviews[review_col].dropna().astype(str).tolist()
         if not looks_like_ingredient(txt)
     ]
+
     random.shuffle(neg_samples)
     neg_samples = neg_samples[:len(pos_samples)]  # balance dataset
 
