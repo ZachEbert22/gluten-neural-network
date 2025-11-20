@@ -345,4 +345,3 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     build_dataset(max_pos=args.max_pos, max_neg=args.max_neg, shuffle_seed=args.seed)
-
