@@ -8,6 +8,10 @@ from transformers import (
 )
 from sklearn.model_selection import train_test_split
 from datasets import Dataset
+import transformers, sys
+print("Transformers version actually being used:", transformers.__version__)
+print("Transformers loaded from:", transformers.__file__)
+print("Python executable:", sys.executable)
 
 DATASET_PATH = "data/ingredient_dataset.csv"
 MODEL_OUT = "models/ingredient_classifier"
@@ -74,7 +78,7 @@ def main():
         output_dir=MODEL_OUT,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
-        evaluation_strategy="epoch",
+        eval_strategy="epoch",
         save_strategy="epoch",
         num_train_epochs=2,
         learning_rate=2e-5,
