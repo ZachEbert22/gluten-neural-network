@@ -1,79 +1,61 @@
-# streamlit_app.py
 import streamlit as st
 import requests
-from pathlib import Path
-import re
 
-BACKEND_URL = "http://127.0.0.1:8000/process"
+API_URL = "http://127.0.0.1:8000/api/parse_recipe"
 
-st.set_page_config(page_title="AI Gluten-Free Converter", layout="centered")
-st.title("🥣 AI Gluten-Free Converter — Unified Backend")
-st.markdown("Paste ingredients or a recipe URL. Backend does NER, parsing, GISMo substitutions and recipe rewriting.")
+# -------------- BACKEND CALLER -----------------
 
-mode = st.radio("Input mode", ["Paste Recipe Text", "Recipe URL"])
+def call_backend(raw_text=None, recipe_url=None):
+    payload = {
+        "raw_text": raw_text,
+        "recipe_url": recipe_url
+    }
+    r = requests.post(API_URL, json=payload)
+    r.raise_for_status()
+    return r.json()
 
-if mode == "Paste Recipe Text":
-    st.markdown("**Enter ingredients (one per line)** OR paste entire recipe text. The backend will auto-detect.")
-    text = st.text_area("Enter ingredients or recipe text:", height=240)
-    instr = st.text_area("Recipe instructions (optional):", height=160)
-    if st.button("Convert"):
-        if not text.strip():
-            st.error("Please paste recipe text or ingredient lines.")
-        else:
-            payload = {"raw_text": text, "instructions": instr}
-            with st.spinner("Sending to backend..."):
-                try:
-                    r = requests.post(BACKEND_URL, json=payload, timeout=60)
-                    r.raise_for_status()
-                    resp = r.json()
-                except Exception as e:
-                    st.error(f"Backend error: {e}")
-                    resp = None
+# ----------------- UI --------------------------
 
-            if resp:
-                st.subheader("Parsed Items (detected)")
-                for item in resp.get("parsed", []):
-                    st.write("-", item["original"], "→", item["parsed"])
+st.set_page_config(page_title="Gluten-Free AI", layout="centered")
 
-                st.subheader("Substitutions")
-                for s in resp.get("substitutions", []):
-                    st.write(f"- {s['original']} → {s['converted']}  ({s['status']})")
+st.title("🥖 Gluten-Free AI Ingredient Engine")
 
-                st.subheader("Rewritten Instructions")
-                if resp.get("rewritten"):
-                    st.write(resp["rewritten"])
-                else:
-                    st.info("No rewritten instructions returned.")
+st.markdown("""
+Paste **ANY** of the following:
 
-elif mode == "Recipe URL":
-    st.markdown("Paste a recipe URL; backend will try to extract ingredients & instructions.")
-    url = st.text_input("Recipe URL:")
-    if st.button("Fetch & Convert"):
-        if not url.strip():
-            st.error("Please paste a URL.")
-        else:
-            payload = {"url": url}
-            with st.spinner("Fetching & processing..."):
-                try:
-                    r = requests.post(BACKEND_URL, json=payload, timeout=60)
-                    r.raise_for_status()
-                    resp = r.json()
-                except Exception as e:
-                    st.error(f"Backend error: {e}")
-                    resp = None
+- Ingredient list  
+- Full recipe text  
+- Blog post  
+- Recipe URL  
+- Anything else — the AI will parse it automatically
+""")
 
-            if resp:
-                st.subheader("Extracted & Parsed Items")
-                for item in resp.get("parsed", []):
-                    st.write("-", item["original"], "→", item["parsed"])
+user_input = st.text_area("Paste recipe text or a URL", height=250)
 
-                st.subheader("Substitutions")
-                for s in resp.get("substitutions", []):
-                    st.write(f"- {s['original']} → {s['converted']}  ({s['status']})")
+if st.button("Process"):
+    if not user_input.strip():
+        st.error("Please paste something first.")
+    else:
 
-                st.subheader("Rewritten Instructions")
-                if resp.get("rewritten"):
-                    st.write(resp["rewritten"])
-                else:
-                    st.info("No rewritten instructions returned.")
+        try:
+            # If the user pasted a URL
+            if user_input.strip().startswith("http"):
+                result = call_backend(recipe_url=user_input.strip())
+            else:
+                # Otherwise process raw text
+                result = call_backend(raw_text=user_input)
+
+            # ------------ DISPLAY RESULTS ------------
+
+            st.subheader("🧾 Parsed Ingredients")
+            st.json(result["ingredients"])
+
+            st.subheader("👩‍🍳 Instructions Found")
+            st.json(result["instructions"])
+
+            st.subheader("✨ Gluten-Free Rewritten Recipe")
+            st.write(result["rewritten"])
+
+        except Exception as e:
+            st.error(f"Backend Error: {str(e)}")
 

@@ -1,5 +1,3 @@
-# backend_api.py
-
 from fastapi import FastAPI
 from pydantic import BaseModel
 from utils.ingredient_parser import parse_ingredient_line
@@ -15,6 +13,8 @@ ner = FoodNERTagger()
 gismo = GISMoEngine()
 rewriter = SHARERewriter()
 
+# ---------------- MODELS ----------------------
+
 class RecipeRequest(BaseModel):
     raw_text: str | None = None
     recipe_url: str | None = None
@@ -25,16 +25,14 @@ class RecipeResponse(BaseModel):
     rewritten: str
     warnings: list
 
-# ---- URL SCRAPER -------------------------------------------------
+# -------------- SCRAPER -----------------------
 
 def scrape_url(url: str) -> str:
     r = requests.get(url, timeout=10)
     soup = BeautifulSoup(r.text, "html.parser")
+    return soup.get_text("\n")
 
-    text = soup.get_text("\n")
-    return text
-
-# ---- NATURAL TEXT PARSER -----------------------------------------
+# -------------- PARSER ------------------------
 
 def extract_from_text(text: str):
     lines = [l.strip() for l in text.split("\n") if l.strip()]
@@ -43,49 +41,45 @@ def extract_from_text(text: str):
     instruction_candidates = []
 
     for line in lines:
-        # 1) Ingredient Parser (your custom line-by-line)
+        # Ingredient parser
         parsed = parse_ingredient_line(line)
 
         if parsed["ingredient"]:
             ingredient_candidates.append(parsed)
             continue
 
-        # 2) FoodNER fallback
+        # FoodNER fallback
         ner_items = ner.extract(line)
         if ner_items:
             ingredient_candidates.extend(ner_items)
             continue
 
-        # Otherwise assume instructions
+        # Otherwise it's an instruction
         instruction_candidates.append(line)
 
     return ingredient_candidates, instruction_candidates
 
-
-# ---- UNIFIED ENDPOINT --------------------------------------------
+# -------------- UNIFIED ENDPOINT --------------
 
 @app.post("/api/parse_recipe", response_model=RecipeResponse)
-def unify_recipe_parser(req: RecipeRequest):
+def parse_recipe(req: RecipeRequest):
 
     if not req.raw_text and not req.recipe_url:
         return {"error": "No input provided"}
 
-    # --- Get text ---
+    # Get text source
     if req.recipe_url:
-        try:
-            raw = scrape_url(req.recipe_url)
-        except Exception as e:
-            return {"error": f"Failed to scrape URL: {e}"}
+        raw = scrape_url(req.recipe_url)
     else:
         raw = req.raw_text
 
-    # --- Parse text ---
+    # Extract
     ingredients, instructions = extract_from_text(raw)
 
-    # --- Run GISMo substitution graph ---
+    # GISMo substitution engine
     enriched = gismo.suggest_substitutions(ingredients)
 
-    # --- Rewrite instructions with SHARE transformer ---
+    # SHARE transformer rewrite
     rewritten = rewriter.rewrite(instructions, enriched)
 
     return RecipeResponse(
