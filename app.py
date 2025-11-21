@@ -21,23 +21,33 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from utils.parser import parse_ingredient, format_ingredient
 from utils.gluten_check import load_gluten_ingredients, load_substitutions
 
+# Load gluten keyword list (used to avoid substituting gluten-free items)
+GLUTEN_LIST = load_gluten_ingredients()
+
+def contains_gluten(ingredient_name: str) -> bool:
+    """Return True if ingredient contains any gluten keyword."""
+    ing = ingredient_name.lower()
+    return any(g in ing for g in GLUTEN_LIST)
+
 # ---------------------------
 # Config
 # ---------------------------
 ING_CLASS_MODEL_DIR = "models/ingredient_classifier"  # output of training
 SUBS_JSON = Path("data/substitutions.json")
 TOP_K = 1
-SIM_THRESHOLD = 0.55   # cosine similarity threshold for accepting a semantic match
+SIM_THRESHOLD = 0.75   # cosine similarity threshold for accepting a semantic match
 
 # ---------------------------
 # Load models (cached)
 # ---------------------------
 @st.cache_resource
 def load_ingredient_classifier():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(ING_CLASS_MODEL_DIR)
     model = AutoModelForSequenceClassification.from_pretrained(ING_CLASS_MODEL_DIR)
+    model.to(device)
     model.eval()
-    return tokenizer, model
+    return tokenizer, model, device
 
 @st.cache_resource
 def load_embedder_and_candidates():
@@ -56,18 +66,21 @@ def load_embedder_and_candidates():
             candidates.append(sub)
             cand_meta.append({"orig": orig, "sub": sub, "ratio": ratio})
     embedder = BertEmbedder()
-    candidate_embs = embedder.embed_texts(candidates, batch_size=64)
-    return embedder, candidates, candidate_embs, cand_meta, substitutions
+    # compute candidate embeddings (these will be returned on CPU by embed_texts)
+    candidate_embs = embedder.embed_texts(candidates, batch_size=64)  # CPU tensor
+    # keep metadata and return device used by embedder
+    return embedder, candidates, candidate_embs, cand_meta, substitutions, embedder.device
 
-tok_ing, clf_ing = load_ingredient_classifier()
-embedder, candidates, candidate_embs, cand_meta, substitutions = load_embedder_and_candidates()
+tok_ing, clf_ing, clf_device = load_ingredient_classifier()
+embedder, candidates, candidate_embs, cand_meta, substitutions, embedder_device = load_embedder_and_candidates()
 
 # ---------------------------
 # Helper: ingredient classifier inference
 # ---------------------------
 def is_ingredient_line_transformer(text: str, threshold: float = 0.5) -> bool:
     enc = tok_ing(text, return_tensors="pt", truncation=True, max_length=128)
-    enc = {k: v.to(next(clf_ing.parameters()).device) for k, v in enc.items()}
+    # move inputs to classifier device
+    enc = {k: v.to(clf_device) for k, v in enc.items()}
     with torch.no_grad():
         logits = clf_ing(**enc).logits
         probs = torch.softmax(logits, dim=-1)[0].cpu().numpy()
@@ -78,15 +91,14 @@ def is_ingredient_line_transformer(text: str, threshold: float = 0.5) -> bool:
 # Helper: semantic substitution using BERT embedder
 # ---------------------------
 def semantic_substitute(ingredient_text: str):
-    # try nearest candidate(s)
-    idxs_scores = embedder.nearest(ingredient_text, candidates, candidate_embs, top_k=TOP_K)
-    if not idxs_scores:
+    matches = embedder.nearest(ingredient_text, candidates, candidate_embs, top_k=TOP_K)
+    if not matches:
         return None, 0.0
-    idx, score = idxs_scores[0]
+    idx, score = matches[0]
     if score >= SIM_THRESHOLD:
         meta = cand_meta[idx]
         return meta, score
-    return None, float(idx[1]) if len(idxs_scores[0])>1 else 0.0
+    return None, score
 
 # ---------------------------
 # Extract ingredients from URL (heuristic + structural)
@@ -149,6 +161,13 @@ if mode == "Paste Recipe Text":
                 continue
 
             parsed = parse_ingredient(orig)
+            ingredient_name = parsed.get("ingredient", "").lower()
+
+            # Skip ingredients that do not contain gluten
+            if not contains_gluten(ingredient_name):
+                st.write(f"🟦 {orig} → (naturally gluten-free, unchanged)")
+                continue
+
             # try semantic substitute
             meta, score = semantic_substitute(orig)
             if meta:
@@ -197,10 +216,19 @@ elif mode == "Recipe URL":
 
             st.subheader("Filtered & Converted:")
             for c in candidates:
+                if re.match(r"^(fat|saturates|carbs|sugars|fibre|fiber|protein|calories)\b", c, re.I):
+                    continue
                 if not is_ingredient_line_transformer(c):
                     # skip non-ingredient lines
                     continue
                 parsed = parse_ingredient(c)
+                ingredient_name = parsed.get("ingredient", "").lower()
+
+                # Skip ingredients that are already gluten-free
+                if not contains_gluten(ingredient_name):
+                    st.write(f"🟦 {c} → (naturally gluten-free, unchanged)")
+                    continue
+
                 meta, score = semantic_substitute(c)
                 if meta:
                     qty = parsed.get("quantity") or "1"
