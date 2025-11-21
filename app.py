@@ -1,151 +1,245 @@
+#!/usr/bin/env python3
+"""
+Streamlit UI:
+- Loads trained ingredient classifier at models/ingredient_classifier
+- Loads BERT embedder and precomputes embeddings for substitution candidates
+- Extracts ingredients from URL or pasted text
+- Filters lines with the ingredient classifier
+- For each ingredient, finds best substitute via cosine similarity
+- Falls back to rule-based substitutions.json if similarity is below threshold
+"""
 import streamlit as st
 import torch
-import pickle
+import json
 import requests
 import re
 from bs4 import BeautifulSoup
-
-from models.gluten_model import GlutenSubstitutionNet
-from models.ingredient_classifier.predict import (
-    load_transformer_classifier,
-    is_ingredient_line_transformer
-)
-from models.bert_embedder.embedder import BertEmbedder
+from pathlib import Path
+from models.bert_embedder import BertEmbedder
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 from utils.parser import parse_ingredient, format_ingredient
 from utils.gluten_check import load_gluten_ingredients, load_substitutions
-from utils.substitution import substitute_ingredient
 
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import torch
+# ---------------------------
+# Config
+# ---------------------------
+ING_CLASS_MODEL_DIR = "models/ingredient_classifier"  # output of training
+SUBS_JSON = Path("data/substitutions.json")
+TOP_K = 1
+SIM_THRESHOLD = 0.55   # cosine similarity threshold for accepting a semantic match
 
-ING_MODEL_PATH = "models/ingredient_classifier"
-
+# ---------------------------
+# Load models (cached)
+# ---------------------------
 @st.cache_resource
-def load_transformer_classifier():
-    tokenizer = AutoTokenizer.from_pretrained(ING_MODEL_PATH)
-    model = AutoModelForSequenceClassification.from_pretrained(ING_MODEL_PATH)
+def load_ingredient_classifier():
+    tokenizer = AutoTokenizer.from_pretrained(ING_CLASS_MODEL_DIR)
+    model = AutoModelForSequenceClassification.from_pretrained(ING_CLASS_MODEL_DIR)
     model.eval()
     return tokenizer, model
 
-tok_ing, clf_ing = load_transformer_classifier()
-
-def is_ingredient_line_transformer(text: str) -> bool:
-    encoded = tok_ing(text, return_tensors="pt", truncation=True)
-    with torch.no_grad():
-        logits = clf_ing(**encoded).logits
-    pred = logits.softmax(dim=-1).argmax().item()
-    return pred == 1   # label 1 = ingredient
-
-
-# ------------------------------------------------
-# Load MLP substitution model
-# ------------------------------------------------
 @st.cache_resource
-def load_mlp_model():
-    with open("models/vectorizer.pkl", "rb") as f:
-        vectorizer = pickle.load(f)
+def load_embedder_and_candidates():
+    # load substitutions json
+    substitutions = load_substitutions()
+    # candidate strings = substitute names (unique)
+    candidates = []
+    # Keep mapping from candidate index -> (substitute_string, ratio)
+    cand_meta = []
+    seen = set()
+    for orig, d in substitutions.items():
+        sub = d.get("substitute")
+        ratio = float(d.get("ratio", 1.0))
+        if sub and sub not in seen:
+            seen.add(sub)
+            candidates.append(sub)
+            cand_meta.append({"orig": orig, "sub": sub, "ratio": ratio})
+    embedder = BertEmbedder()
+    candidate_embs = embedder.embed_texts(candidates, batch_size=64)
+    return embedder, candidates, candidate_embs, cand_meta, substitutions
 
-    checkpoint = torch.load("models/model.pth", map_location="cpu")
-    num_subs = checkpoint["out_substitute.weight"].shape[0]
+tok_ing, clf_ing = load_ingredient_classifier()
+embedder, candidates, candidate_embs, cand_meta, substitutions = load_embedder_and_candidates()
 
-    model = GlutenSubstitutionNet(
-        input_dim=len(vectorizer.get_feature_names_out()),
-        hidden_dim=128,
-        num_substitutes=num_subs
-    )
-    model.load_state_dict(checkpoint)
-    model.eval()
-    return model, vectorizer
+# ---------------------------
+# Helper: ingredient classifier inference
+# ---------------------------
+def is_ingredient_line_transformer(text: str, threshold: float = 0.5) -> bool:
+    enc = tok_ing(text, return_tensors="pt", truncation=True, max_length=128)
+    enc = {k: v.to(next(clf_ing.parameters()).device) for k, v in enc.items()}
+    with torch.no_grad():
+        logits = clf_ing(**enc).logits
+        probs = torch.softmax(logits, dim=-1)[0].cpu().numpy()
+    # label 1 = ingredient
+    return float(probs[1]) >= threshold
 
+# ---------------------------
+# Helper: semantic substitution using BERT embedder
+# ---------------------------
+def semantic_substitute(ingredient_text: str):
+    # try nearest candidate(s)
+    idxs_scores = embedder.nearest(ingredient_text, candidates, candidate_embs, top_k=TOP_K)
+    if not idxs_scores:
+        return None, 0.0
+    idx, score = idxs_scores[0]
+    if score >= SIM_THRESHOLD:
+        meta = cand_meta[idx]
+        return meta, score
+    return None, float(idx[1]) if len(idxs_scores[0])>1 else 0.0
 
-mlp_model, vectorizer = load_mlp_model()
-bert_embedder = BertEmbedder()
-clf_model, clf_tokenizer = load_transformer_classifier()
-
-gluten_ingredients = load_gluten_ingredients()
-substitutions = load_substitutions()
-
-
-# ------------------------------------------------
-# Better URL extraction using BERT ingredient classifier
-# ------------------------------------------------
-def extract_recipe_from_url(url):
+# ---------------------------
+# Extract ingredients from URL (heuristic + structural)
+# ---------------------------
+def extract_recipe_from_url(url: str):
     try:
         r = requests.get(url, timeout=10)
         soup = BeautifulSoup(r.text, "html.parser")
-
-        candidates = []
-
-        selectors = [
-            '[itemprop="recipeIngredient"]',
-            '.ingredients-item-name',
-            '.recipe-ingredients__list-item',
-            'li.ingredient',
-        ]
-
-        # direct ingredient selectors
-        for sel in selectors:
-            for tag in soup.select(sel):
-                txt = tag.get_text(strip=True)
-                candidates.append(txt)
-
-        # fallback: any LI with ingredient-like patterns
-        if not candidates:
-            for li in soup.find_all("li"):
-                txt = li.get_text(strip=True)
-                if re.search(r"(cup|tsp|tbsp|g|kg|flour|sugar|butter)", txt, re.I):
-                    candidates.append(txt)
-
-        # FILTER USING THE TRANSFORMER CLASSIFIER
-        cleaned = []
-        for line in candidates:
-            if is_ingredient_line_transformer(line, clf_model, clf_tokenizer):
-                cleaned.append(line)
-
-        cleaned = list(dict.fromkeys(cleaned))
-        return cleaned[:20]
-
     except Exception as e:
-        st.error(f"Error extracting recipe: {e}")
+        st.error(f"Error fetching URL: {e}")
         return []
 
-# ------------------------------
-# UI SECTION
-# ------------------------------
-st.title("🥣 AI Gluten-Free Recipe Converter")
-st.markdown("Upload a recipe, or paste a URL from Food.com / AllRecipes / Epicurious to get a gluten-free version!")
+    selectors = [
+        '[itemprop="recipeIngredient"]',
+        '.ingredients-item-name',
+        '.recipe-ingredients__list-item',
+        'li.ingredient',
+        'span.ingredients-item-name',
+    ]
+    candidates = []
+    for sel in selectors:
+        for tag in soup.select(sel):
+            txt = tag.get_text(separator=" ", strip=True)
+            if txt:
+                candidates.append(txt)
 
-mode = st.radio("Choose input type:", ["Paste Recipe Text", "Recipe URL"])
+    # fallback: any <li> that looks culinary
+    if not candidates:
+        for li in soup.find_all("li"):
+            txt = li.get_text(separator=" ", strip=True)
+            if re.search(r'\b(cup|tsp|tbsp|ml|g|flour|sugar|salt|oil|butter|milk|egg|spice|bread)\b', txt, re.I):
+                candidates.append(txt)
+
+    # dedupe/order-preserve
+    seen = set()
+    clean = []
+    for c in candidates:
+        if c not in seen:
+            seen.add(c)
+            clean.append(re.sub(r'\s+', ' ', c).strip())
+    return clean
+
+# ---------------------------
+# UI
+# ---------------------------
+st.title("🥣 AI Gluten-Free Converter — BERT Substitution (Option 1)")
+st.markdown("Paste ingredients or a recipe URL. Uses BERT to detect ingredient lines and find semantic substitutes.")
+
+mode = st.radio("Input mode", ["Paste Recipe Text", "Recipe URL"])
 
 if mode == "Paste Recipe Text":
-    recipe_input = st.text_area("Enter recipe ingredients (one per line):")
-    if st.button("Convert to Gluten-Free"):
-        ingredients = [i.strip() for i in recipe_input.split("\n") if i.strip()]
-        if ingredients:
-            st.subheader("Converted Ingredients:")
-            for ing in ingredients:
-                parsed = parse_ingredient(ing)
-                sub = substitute_ingredient(parsed, substitutions)
-                formatted = format_ingredient(sub)
-                st.write(f"✅ {ing} → {formatted}")
+    text = st.text_area("Enter ingredients (one per line):")
+    if st.button("Convert"):
+        lines = [l.strip() for l in text.splitlines() if l.strip()]
+        st.subheader("Converted:")
+        for orig in lines:
+            # ingredient detection
+            if not is_ingredient_line_transformer(orig):
+                st.write(f"⚠ Not recognized as ingredient: {orig}")
+                continue
+
+            parsed = parse_ingredient(orig)
+            # try semantic substitute
+            meta, score = semantic_substitute(orig)
+            if meta:
+                # Use ratio from meta, adjust quantity if parsed quantity available
+                qty = parsed.get("quantity") or "1"
+                try:
+                    qf = float(qty)
+                except:
+                    qf = 1.0
+                new_qty = round(qf * meta["ratio"], 2)
+                out = {"quantity": str(new_qty), "unit": parsed.get("unit",""), "ingredient": meta["sub"]}
+                formatted = format_ingredient(out)
+                st.write(f"✅ {orig} → {formatted}  (semantic score {score:.2f})")
+            else:
+                # fallback rule-based substring match in substitutions.json
+                substituted = None
+                name = parsed.get("ingredient","").lower()
+                for g, info in substitutions.items():
+                    if g in name:
+                        new_qty = parsed.get("quantity") or "1"
+                        try:
+                            qf = float(new_qty)
+                        except:
+                            qf = 1.0
+                        out = {"quantity": str(round(qf * info.get("ratio",1.0),2)),
+                               "unit": parsed.get("unit",""),
+                               "ingredient": info.get("substitute")}
+                        formatted = format_ingredient(out)
+                        substituted = formatted
+                        break
+                if substituted:
+                    st.write(f"✅ {orig} → {substituted}  (rule fallback)")
+                else:
+                    st.write(f"❌ {orig} → No substitute found (try extending substitutions.json)")
+
+elif mode == "Recipe URL":
+    url = st.text_input("Paste recipe URL:")
+    if st.button("Fetch & Convert"):
+        candidates = extract_recipe_from_url(url)
+        if not candidates:
+            st.warning("Could not extract ingredients from the URL.")
         else:
-            st.warning("Please enter some ingredients first.")
+            st.subheader("Extracted (raw):")
+            for c in candidates[:40]:
+                st.write("-", c)
 
-ingredients = extract_recipe_from_url(recipe_url)
-ingredients = [ing for ing in ingredients if is_ingredient_line_transformer(ing)]
+            st.subheader("Filtered & Converted:")
+            for c in candidates:
+                if not is_ingredient_line_transformer(c):
+                    # skip non-ingredient lines
+                    continue
+                parsed = parse_ingredient(c)
+                meta, score = semantic_substitute(c)
+                if meta:
+                    qty = parsed.get("quantity") or "1"
+                    try:
+                        qf = float(qty)
+                    except:
+                        qf = 1.0
+                    new_qty = round(qf * meta["ratio"], 2)
+                    out = {"quantity": str(new_qty), "unit": parsed.get("unit",""), "ingredient": meta["sub"]}
+                    formatted = format_ingredient(out)
+                    st.write(f"✅ {c} → {formatted}  (semantic score {score:.2f})")
+                else:
+                    # rule fallback
+                    name = parsed.get("ingredient","").lower()
+                    substituted = None
+                    for g, info in substitutions.items():
+                        if g in name:
+                            qty = parsed.get("quantity") or "1"
+                            try:
+                                qf = float(qty)
+                            except:
+                                qf = 1.0
+                            out = {"quantity": str(round(qf * info.get("ratio",1.0),2)),
+                                   "unit": parsed.get("unit",""),
+                                   "ingredient": info.get("substitute")}
+                            formatted = format_ingredient(out)
+                            substituted = formatted
+                            break
+                    if substituted:
+                        st.write(f"✅ {c} → {substituted}  (rule fallback)")
+                    else:
+                        st.write(f"❌ {c} → No substitute found")
 
-if ingredients:
-    st.subheader("Extracted Ingredients:")
-    for ing in ingredients:
-        st.write(f"- {ing}")
-    st.subheader("Converted to Gluten-Free:")
-    for ing in ingredients:
-        parsed = parse_ingredient(ing)
-        sub = substitute_ingredient(parsed, substitutions)
-        formatted = format_ingredient(sub)
-        st.write(f"✅ {ing} → {formatted}")
-else:
-    st.warning("Could not extract ingredients from that URL.")
-
+# ---------------------------
+# Debugging area (optional)
+# ---------------------------
+st.markdown("---")
+if st.checkbox("Show substitution candidates (debug)"):
+    st.write("Candidates:", candidates)
+    st.write("Candidate meta:", cand_meta)
+    st.write("Substitutions.json:", substitutions)
 
