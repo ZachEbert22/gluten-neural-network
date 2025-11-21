@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 from models.bert_embedder import BertEmbedder
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
+from utils.normalization import normalize_ingredient
 from utils.parser import parse_ingredient, format_ingredient
 from utils.gluten_check import load_gluten_ingredients, load_substitutions
 
@@ -161,7 +161,8 @@ if mode == "Paste Recipe Text":
                 continue
 
             parsed = parse_ingredient(orig)
-            ingredient_name = parsed.get("ingredient", "").lower()
+            raw_ing = parsed.get("ingredient", "").lower()
+            ingredient_name = normalize_ingredient(raw_ing)
 
             # Skip ingredients that do not contain gluten
             if not contains_gluten(ingredient_name):
@@ -169,7 +170,7 @@ if mode == "Paste Recipe Text":
                 continue
 
             # try semantic substitute
-            meta, score = semantic_substitute(orig)
+            meta, score = semantic_substitute(ingredient_name)
             if meta:
                 # Use ratio from meta, adjust quantity if parsed quantity available
                 qty = parsed.get("quantity") or "1"
@@ -184,7 +185,7 @@ if mode == "Paste Recipe Text":
             else:
                 # fallback rule-based substring match in substitutions.json
                 substituted = None
-                name = parsed.get("ingredient","").lower()
+                name = ingredient_name
                 for g, info in substitutions.items():
                     if g in name:
                         new_qty = parsed.get("quantity") or "1"
