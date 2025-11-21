@@ -20,6 +20,10 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from utils.normalization import normalize_ingredient
 from utils.parser import parse_ingredient, format_ingredient
 from utils.gluten_check import load_gluten_ingredients, load_substitutions
+from utils.ingredient_parser import parse_ingredient_line, normalize_ingredient_name
+from utils.gismo import GISMo
+from models.food_ner import FoodNER
+from models.share_rewriter import SHARERewriter
 
 # Load gluten keyword list (used to avoid substituting gluten-free items)
 GLUTEN_LIST = load_gluten_ingredients()

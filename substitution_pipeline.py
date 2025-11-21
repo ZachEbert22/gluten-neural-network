@@ -1,6 +1,13 @@
+# substitution_pipeline.py (top)
 import re
 import torch
 from models.bert_embedder import BertEmbedder
+
+# NEW imports
+from utils.gismo import GISMo
+from models.food_ner import FoodNER
+from utils.ingredient_parser import parse_ingredient_line, normalize_ingredient_name
+
 
 # Nutrition lines we should NOT substitute
 NUTRITION_RE = re.compile(
@@ -31,27 +38,24 @@ class SubstitutionEngine:
         self.keys = list(self.map.keys())
         self.key_vectors = self.embedder.encode_texts(self.keys)
 
+        # GISMo graph (optional)
+        self.gismo = GISMo(self.map, embedder=self.embedder) if use_gismo else None
+
+        # Food NER (optional)
+        self.ner = FoodNER(device=0 if torch.cuda.is_available() else -1) if use_ner else None
+
     def parse_line(self, text):
         """Return (qty+unit, ingredient_name_only)"""
         text = text.strip()
-
         if NUTRITION_RE.match(text):
             return None, None
 
-        qty_match = QUANTITY_RE.search(text)
-        qty = qty_match.group(0) if qty_match else ""
-
-        unit_match = UNIT_RE.search(text)
-        unit = unit_match.group(0) if unit_match else ""
-
-        ingredient = text
-        if qty:
-            ingredient = ingredient.replace(qty, "")
-        if unit:
-            ingredient = ingredient.replace(unit, "")
-
-        ingredient = ingredient.strip(" ,-").lower()
-
+        parsed = parse_ingredient_line(text)
+        qty = parsed.get("quantity") or ""
+        unit = parsed.get("unit") or ""
+        ingredient = parsed.get("ingredient") or ""
+        # normalize
+        ingredient = normalize_ingredient_name(ingredient)
         return (qty + (" " + unit if unit else "")).strip(), ingredient
 
     def substitute(self, line):
@@ -76,8 +80,13 @@ class SubstitutionEngine:
             best_key = self.keys[idx]
             score = sims[idx].item()
 
-        # Too weak → do not substitute
-        if score < 0.85:
+        # Too weak → try GISMo graph if available
+        if score < 0.85 and self.gismo is not None:
+            cand, gscore = self.gismo.best_substitute(ingredient)
+            if cand and gscore >= 0.6:
+                sub = self.map.get(cand, self.map.get(cand, cand))
+                return f"{qty} {sub}".strip(), True
+            # else give up
             return line, False
 
         sub = self.map[best_key]
