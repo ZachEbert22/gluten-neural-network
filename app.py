@@ -16,6 +16,27 @@ from utils.parser import parse_ingredient, format_ingredient
 from utils.gluten_check import load_gluten_ingredients, load_substitutions
 from utils.substitution import substitute_ingredient
 
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+
+ING_MODEL_PATH = "models/ingredient_classifier"
+
+@st.cache_resource
+def load_transformer_classifier():
+    tokenizer = AutoTokenizer.from_pretrained(ING_MODEL_PATH)
+    model = AutoModelForSequenceClassification.from_pretrained(ING_MODEL_PATH)
+    model.eval()
+    return tokenizer, model
+
+tok_ing, clf_ing = load_transformer_classifier()
+
+def is_ingredient_line_transformer(text: str) -> bool:
+    encoded = tok_ing(text, return_tensors="pt", truncation=True)
+    with torch.no_grad():
+        logits = clf_ing(**encoded).logits
+    pred = logits.softmax(dim=-1).argmax().item()
+    return pred == 1   # label 1 = ingredient
+
 
 # ------------------------------------------------
 # Load MLP substitution model
@@ -111,21 +132,20 @@ if mode == "Paste Recipe Text":
         else:
             st.warning("Please enter some ingredients first.")
 
-elif mode == "Recipe URL":
-    recipe_url = st.text_input("Paste a recipe URL:")
-    if st.button("Fetch & Convert"):
-        ingredients = extract_recipe_from_url(recipe_url)
-        if ingredients:
-            st.subheader("Extracted Ingredients:")
-            for ing in ingredients:
-                st.write(f"- {ing}")
-            st.subheader("Converted to Gluten-Free:")
-            for ing in ingredients:
-                parsed = parse_ingredient(ing)
-                sub = substitute_ingredient(parsed, substitutions)
-                formatted = format_ingredient(sub)
-                st.write(f"✅ {ing} → {formatted}")
-        else:
-            st.warning("Could not extract ingredients from that URL.")
+ingredients = extract_recipe_from_url(recipe_url)
+ingredients = [ing for ing in ingredients if is_ingredient_line_transformer(ing)]
+
+if ingredients:
+    st.subheader("Extracted Ingredients:")
+    for ing in ingredients:
+        st.write(f"- {ing}")
+    st.subheader("Converted to Gluten-Free:")
+    for ing in ingredients:
+        parsed = parse_ingredient(ing)
+        sub = substitute_ingredient(parsed, substitutions)
+        formatted = format_ingredient(sub)
+        st.write(f"✅ {ing} → {formatted}")
+else:
+    st.warning("Could not extract ingredients from that URL.")
 
 

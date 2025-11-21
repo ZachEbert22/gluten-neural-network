@@ -5,16 +5,12 @@ from transformers import (
     AutoModelForSequenceClassification,
     TrainingArguments,
     Trainer,
+    DataCollatorWithPadding
 )
 from sklearn.model_selection import train_test_split
 from datasets import Dataset
-import transformers, sys
 import torch
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("Using device:", device)
-print("Transformers version:", transformers.__version__)
-print("Python:", sys.executable)
 
 DATASET_PATH = "data/ingredient_dataset.csv"
 MODEL_OUT = "models/ingredient_classifier"
@@ -24,29 +20,38 @@ MODEL_NAME = "distilbert-base-uncased"
 
 
 # -------------------------------------------------------
-# Load dataset
+# LOAD DATASET
 # -------------------------------------------------------
 def load_dataset():
     df = pd.read_csv(DATASET_PATH)
+
+    # enforce correct dtypes
+    df["text"] = df["text"].astype(str)
+    df["label"] = df["label"].astype(int)
+
+    # shuffle
     df = df.sample(frac=1).reset_index(drop=True)
+
+    # train/val split
     train_df, val_df = train_test_split(df, test_size=0.05, random_state=42)
+
     return Dataset.from_pandas(train_df), Dataset.from_pandas(val_df)
 
 
 # -------------------------------------------------------
-# Tokenization
+# TOKENIZATION FUNCTION
 # -------------------------------------------------------
 def tokenize_fn(batch):
     return tokenizer(
         batch["text"],
         truncation=True,
-        padding="longest",
-        max_length=True,        # MUCH FASTER
+        padding=False,     # dynamic padding (safer)
+        max_length=128
     )
 
 
 # -------------------------------------------------------
-# Main training routine
+# TRAINING
 # -------------------------------------------------------
 def main():
     global tokenizer
@@ -56,53 +61,50 @@ def main():
 
     print("Loading tokenizer/model…")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True)
-    model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_NAME,
-        num_labels=2
-    )
+    model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
 
-    # BIG speedup, lower memory
+    # GPU memory optimization
     model.gradient_checkpointing_enable()
 
     print("Tokenizing…")
-    train_ds = train_ds.map(tokenize_fn, batched=True, num_proc=4)
-    val_ds = val_ds.map(tokenize_fn, batched=True, num_proc=4)
+    train_ds = train_ds.map(tokenize_fn, batched=True)
+    val_ds = val_ds.map(tokenize_fn, batched=True)
 
-    train_ds = train_ds.remove_columns(["text"])
-    val_ds = val_ds.remove_columns(["text"])
-
+    # rename label → labels
     train_ds = train_ds.rename_column("label", "labels")
     val_ds = val_ds.rename_column("label", "labels")
 
-    # Critical: speed + stability
-    train_ds = train_ds.with_format("torch")
-    val_ds = val_ds.with_format("torch")
+    # remove non-model columns
+    train_ds = train_ds.remove_columns(["text"])
+    val_ds = val_ds.remove_columns(["text"])
 
-    # TRAINING SETTINGS — optimized for speed + safety
+    # convert to torch tensors
+    train_ds.set_format("torch")
+    val_ds.set_format("torch")
+
+    # dynamic padding collator
+    data_collator = DataCollatorWithPadding(tokenizer)
+
     training_args = TrainingArguments(
         output_dir=MODEL_OUT,
 
-        per_device_train_batch_size=16,       # up from 4
+        per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
-        gradient_accumulation_steps=2,       # effective batch size = 16
+        gradient_accumulation_steps=2,
 
-        fp16=True,                           # huge speedup
+        fp16=torch.cuda.is_available(),
         dataloader_num_workers=4,
         dataloader_pin_memory=True,
 
-        eval_strategy="steps",
-        eval_steps=5000,
-        save_strategy="steps",
-        save_steps=5000,
+        eval_strategy="epoch",
+        save_strategy="epoch",
 
-        logging_steps=200,
         num_train_epochs=2,
-
         learning_rate=2e-5,
         weight_decay=0.01,
-        load_best_model_at_end=True,
+        logging_steps=200,
 
-        torch_compile=True,                  # PyTorch 2.0 speed boost
+        load_best_model_at_end=True,
     )
 
     trainer = Trainer(
@@ -110,6 +112,8 @@ def main():
         args=training_args,
         train_dataset=train_ds,
         eval_dataset=val_ds,
+        data_collator=data_collator,
+        tokenizer=tokenizer
     )
 
     print("Training…")
