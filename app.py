@@ -35,7 +35,7 @@ def contains_gluten(ingredient_name: str) -> bool:
 ING_CLASS_MODEL_DIR = "models/ingredient_classifier"  # output of training
 SUBS_JSON = Path("data/substitutions.json")
 TOP_K = 1
-SIM_THRESHOLD = 0.75   # cosine similarity threshold for accepting a semantic match
+SIM_THRESHOLD = 0.88   # cosine similarity threshold for accepting a semantic match
 
 # ---------------------------
 # Load models (cached)
@@ -157,12 +157,17 @@ if mode == "Paste Recipe Text":
         for orig in lines:
             # ingredient detection
             if not is_ingredient_line_transformer(orig):
-                st.write(f"⚠ Not recognized as ingredient: {orig}")
-                continue
+                if not re.search(r"\d|\b(cup|cups|tsp|tbsp|teaspoon|tablespoon|gram|g|ml|ounce|oz|stick|egg|banana)\b", orig, re.I):
+                    st.write(f"⚠ Not recognized as ingredient: {orig}")
+                    continue
 
             parsed = parse_ingredient(orig)
             raw_ing = parsed.get("ingredient", "").lower()
             ingredient_name = normalize_ingredient(raw_ing)
+
+            if len(ingredient_name.split()) > 2:
+                st.write(f"🟦 {orig} → (dish, not substituted)")
+                continue
 
             # Skip ingredients that do not contain gluten
             if not contains_gluten(ingredient_name):

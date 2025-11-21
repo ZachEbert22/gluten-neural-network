@@ -1,7 +1,7 @@
 {
-    	"wheat flour":
+    	"flour":
        	{
-		"substitute": "almond flour",
+		"substitute": "gluten-free flour",
 	       	"ratio": 0.75
 	},
     	"barley":
