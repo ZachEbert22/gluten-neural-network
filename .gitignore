@@ -1,0 +1,7 @@
+models/ingredient_classifier/checkpoint*
+models/ingredient_classifier/model.safetensors
+models/__pycache__/*
+utils/__pycache__/*
+data/ingredient_classifier_dataset.csv
+data/ingredient_dataset.csv
+
