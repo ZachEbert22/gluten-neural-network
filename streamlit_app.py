@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-API_URL = "http://127.0.0.1:8000/api/parse_recipe"
+API_URL = "http://127.0.0.1:8000/process"
 
 # -------------- BACKEND CALLER -----------------
 
@@ -29,33 +29,33 @@ Paste **ANY** of the following:
 - Recipe URL  
 - Anything else — the AI will parse it automatically
 """)
-
-user_input = st.text_area("Paste recipe text or a URL", height=250)
+recipe_url = st.text_input("🔗 Paste Recipe URL (optional)")
+raw_text = st.text_area("📋 Paste ingredient list or recipe text (optional)", height=200)
 
 if st.button("Process"):
-    if not user_input.strip():
-        st.error("Please paste something first.")
+    if not recipe_url and not raw_text.strip():
+        st.error("Please paste a recipe URL or ingredient text.")
     else:
-
         try:
-            # If the user pasted a URL
-            if user_input.strip().startswith("http"):
-                result = call_backend(recipe_url=user_input.strip())
-            else:
-                # Otherwise process raw text
-                result = call_backend(raw_text=user_input)
+            payload = {}
+            if recipe_url:
+                payload["url"] = recipe_url
+            if raw_text.strip():
+                payload["raw_text"] = raw_text.strip()
 
-            # ------------ DISPLAY RESULTS ------------
+            result = requests.post(API_URL, json=payload)
+            result.raise_for_status()
+            result = result.json()
 
+            # ---------------- RESULTS ----------------
             st.subheader("🧾 Parsed Ingredients")
-            st.json(result["ingredients"])
+            st.json(result.get("parsed", []))
 
-            st.subheader("👩‍🍳 Instructions Found")
-            st.json(result["instructions"])
+            st.subheader("✨ Ingredient Substitutions")
+            st.json(result.get("substitutions", []))
 
-            st.subheader("✨ Gluten-Free Rewritten Recipe")
-            st.write(result["rewritten"])
+            st.subheader("👩‍🍳 Rewritten Gluten-Free Instructions")
+            st.write(result.get("rewritten", ""))
 
         except Exception as e:
             st.error(f"Backend Error: {str(e)}")
-
