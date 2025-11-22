@@ -9,7 +9,8 @@ from models.food_ner import FoodNER
 from utils.ingredient_parser import parse_ingredient_line, normalize_ingredient_name
 import json
 import os
-use_gismo = False
+
+use_gismo = True
 use_ner = False
 
 # Nutrition lines we should NOT substitute

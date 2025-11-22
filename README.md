@@ -15,7 +15,7 @@ https://www.loveandlemons.com/brownies-recipe/
 1.25 teaspoons of kosher salt
 1 teaspoons of baking soda
 .75 cups of butter
-1.25 cupgranulated sugar (247 grams)
+1.25 cups of granulated sugar
 1 large egg, lightly beaten
 2 teaspoons of vanilla extract
 1 cup of well-mashed very ripe banana (from about 2 1/2 large bananas

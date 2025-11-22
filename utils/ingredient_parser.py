@@ -15,7 +15,10 @@ UNITS = [
 
 UNIT_RE = re.compile(r"\b(" + r"|".join([re.escape(u) for u in UNITS]) + r")\b", re.I)
 FRACTION_RE = re.compile(
-    r"(?P<num>\d+)\s*(?P<frac>\d+/\d+)|(?P<simple>\d+/\d+)|(?P<float>\d+\.\d+)|(?P<int>\d+)"
+    r"(?P<mixed>\d+\s+\d+/\d+)|"      # 1 1/2
+    r"(?P<fraction>\d+/\d+)|"         # 1/2
+    r"(?P<float>\d*\.\d+)|"           # .75 or 0.75 or 1.25
+    r"(?P<int>\d+)"                   # 1 or 2 or 3
 )
 PAREN_RE = re.compile(r"\(.*?\)")
 PREP_SPLIT_RE = re.compile(r",|\s+-\s+|\s+or\s+|\s+and\s+")
@@ -48,7 +51,8 @@ def parse_ingredient_line(line: str) -> Dict[str, Optional[str]]:
     m = FRACTION_RE.search(s_no_paren)
     if m:
         qty = m.group(0)
-        ingredient = s_no_paren.replace(qty, "", 1).strip()
+        start, end = m.span()
+        ingredient = s_no_paren[end:].strip()
 
     # detect unit
     m2 = UNIT_RE.search(ingredient)

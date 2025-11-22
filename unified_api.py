@@ -148,7 +148,8 @@ def load_models():
         # --- Disable broken FoodNER (no HF model files exist) ---
         class DummyNER:
             def extract_ingredients(self, text):
-                parts = re.split(r'\n|;|\.', text)
+                #parts = re.split(r'\n|;|\.', text)
+                parts = re.split(r'\n|;', text)
                 return [p.strip() for p in parts if p.strip()]
 
         Registry.foodner = DummyNER()
@@ -248,6 +249,21 @@ def process(req: ProcessRequest):
 
         # Try substitution engine
         conv, changed = Registry.substitution_engine.substitute(orig)
+        # If substitution engine returned a dict, convert it to readable text
+        if isinstance(conv, dict) and "substitute" in conv:
+            qty = entry["parsed"].get("quantity", "")
+            unit = entry["parsed"].get("unit", "")
+            sub = conv["substitute"]
+            ratio = conv.get("ratio", 1)
+
+            # Quantity scaling
+            try:
+                scaled_qty = float(qty) * float(ratio)
+                qty_out = f"{scaled_qty:g}"
+            except:
+                qty_out = qty
+
+            conv = f"{qty_out} {unit} {sub}".strip()
 
         # If GISMo exists but SubEngine didn't change anything
         if not changed and Registry.gismo:

@@ -66,7 +66,7 @@
 	},
 	"bread crumb":
 	{
-		"substitute": "gluten-free bread crumn",
+		"substitute": "gluten-free bread crumb",
 		"ratio": 1.0
 	},
 	"wonton wrapper":
@@ -98,5 +98,10 @@
 	{
 		"substitute": "gluten-free cracker",
 		"ratio": 2.0
+	},
+	"wholemeal flour":
+	{
+		"substitute": "gluten-free blend",
+		"ratio": 1.25	
 	}
 }

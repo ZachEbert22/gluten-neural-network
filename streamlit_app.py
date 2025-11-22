@@ -1,61 +1,116 @@
 import streamlit as st
 import requests
+import json
 
 API_URL = "http://127.0.0.1:8000/process"
 
-# -------------- BACKEND CALLER -----------------
+st.set_page_config(
+    page_title="Gluten-Free Recipe AI",
+    layout="centered",
+)
 
-def call_backend(raw_text=None, recipe_url=None):
-    payload = {
-        "raw_text": raw_text,
-        "recipe_url": recipe_url
-    }
-    r = requests.post(API_URL, json=payload)
-    r.raise_for_status()
-    return r.json()
+st.title("🍞 Gluten-Free Recipe Converter")
+st.write("Convert any recipe into a gluten-free version with smart ingredient substitutions.")
 
-# ----------------- UI --------------------------
+# ----------------------------------------------------------
+# User Input Section
+# ----------------------------------------------------------
 
-st.set_page_config(page_title="Gluten-Free AI", layout="centered")
+st.subheader("Recipe Input")
+recipe_text = st.text_area(
+    "Paste your recipe (ingredients + method).",
+    height=260,
+    placeholder="e.g. 2 cups all-purpose flour...\n1 tbsp soy sauce...\n\nMix all ingredients...",
+)
 
-st.title("🥖 Gluten-Free AI Ingredient Engine")
+st.divider()
 
-st.markdown("""
-Paste **ANY** of the following:
+st.subheader("Options")
+user_mode = st.checkbox("Developer Mode (show raw API output)", value=False)
 
-- Ingredient list  
-- Full recipe text  
-- Blog post  
-- Recipe URL  
-- Anything else — the AI will parse it automatically
-""")
-recipe_url = st.text_input("🔗 Paste Recipe URL (optional)")
-raw_text = st.text_area("📋 Paste ingredient list or recipe text (optional)", height=200)
+if st.button("Convert Recipe", type="primary"):
+    if not recipe_text.strip():
+        st.error("Please paste a recipe first.")
+        st.stop()
 
-if st.button("Process"):
-    if not recipe_url and not raw_text.strip():
-        st.error("Please paste a recipe URL or ingredient text.")
-    else:
+    with st.spinner("Processing recipe..."):
         try:
-            payload = {}
-            if recipe_url:
-                payload["url"] = recipe_url
-            if raw_text.strip():
-                payload["raw_text"] = raw_text.strip()
-
-            result = requests.post(API_URL, json=payload)
-            result.raise_for_status()
-            result = result.json()
-
-            # ---------------- RESULTS ----------------
-            st.subheader("🧾 Parsed Ingredients")
-            st.json(result.get("parsed", []))
-
-            st.subheader("✨ Ingredient Substitutions")
-            st.json(result.get("substitutions", []))
-
-            st.subheader("👩‍🍳 Rewritten Gluten-Free Instructions")
-            st.write(result.get("rewritten", ""))
-
+            payload = {"text": recipe_text}
+            r = requests.post(API_URL, json=payload)
         except Exception as e:
-            st.error(f"Backend Error: {str(e)}")
+            st.error(f"Could not contact backend: {e}")
+            st.stop()
+
+        if r.status_code != 200:
+            st.error(f"Backend Error {r.status_code}: {r.text}")
+            st.stop()
+
+        data = r.json()
+
+    # ----------------------------------------------------------
+    # DISPLAY RESULTS
+    # ----------------------------------------------------------
+    st.success("Recipe processed successfully!")
+
+    # -------------------------
+    # 1) Pretty Ingredient List
+    # -------------------------
+    st.subheader("🧾 Parsed Ingredients")
+
+    ing_list = data.get("ingredients", [])
+
+    for ing in ing_list:
+        name = ing.get("name", "")
+        qty = ing.get("quantity", "")
+        unit = ing.get("unit", "")
+        txt = f"**{name}** — {qty} {unit}".strip()
+        st.markdown(f"- {txt}")
+
+    st.divider()
+
+    # -------------------------
+    # 2) Substitution Table
+    # -------------------------
+    st.subheader("🔄 Smart Gluten-Free Substitutions")
+
+    subs = data.get("substitutions", [])
+
+    if not subs:
+        st.info("No substitutions needed!")
+    else:
+        import pandas as pd
+        df = pd.DataFrame(subs)
+        # Expected schema: ingredient, substitute, reason, score
+        if "score" in df.columns:
+            df["score"] = df["score"].round(3)
+
+        st.dataframe(df, use_container_width=True)
+
+    st.divider()
+
+    # -------------------------
+    # 3) Clean Method Section
+    # -------------------------
+    st.subheader("👨‍🍳 Cooking Instructions")
+    method = data.get("steps", data.get("method", ""))
+
+    if method:
+        st.write(method)
+    else:
+        st.info("No method section detected in recipe.")
+
+    # -------------------------
+    # 4) Developer Mode
+    # -------------------------
+    if user_mode:
+        st.divider()
+        st.subheader("🔧 Developer Mode")
+
+        st.write("### Raw JSON Response")
+        st.json(data)
+
+        if "debug" in data:
+            st.write("### Debug Info")
+            st.json(data["debug"])
+
+
