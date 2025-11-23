@@ -1,3 +1,5 @@
+import re
+
 NORMALIZATION_OVERRIDES = {
     # FLOURS
     "all-purpose flour": "flour",
@@ -13,13 +15,16 @@ NORMALIZATION_OVERRIDES = {
     "white flour": "flour",
     "self rising flour": "flour",
     "self-raising flour": "flour",
-
-    #"all-purpose": "flour",
-    #"all purpose": "flour",
-    #"white all-purpose": "flour",
-    #"white ap": "flour",
-
-    "wholemeal flour": "wholemeal flour",
+    "flour": "flour",
+    "wholemeal": "flour",
+    "whole wheat": "flour",
+    "whole wheat flour": "flour",
+    "whole-meal flour": "flour",
+    "whole meal": "flour",
+    "white ap flour": "flour",
+    "ap": "flour",
+    "ap flour": "flour",
+    "white ap": "flour",
     "whole meal flour": "wholemeal flour",
     "whole wheat meal flour": "wholemeal flour",
 
@@ -49,11 +54,24 @@ NORMALIZATION_OVERRIDES = {
     "chocolate chips": "chocolate",
 }
 
+
 def normalize_ingredient(ingredient: str) -> str:
-    """Apply override normalization rules to ingredient name."""
-    ing = ingredient.lower()
+    ing = ingredient.lower().strip()
+
+    # Exact matches first
+    if ing in NORMALIZATION_OVERRIDES:
+        return NORMALIZATION_OVERRIDES[ing]
+
+    # Word-boundary fuzzy matching
     for key, val in NORMALIZATION_OVERRIDES.items():
-        if key in ing:
+        if re.search(rf"\b{re.escape(key)}\b", ing):
             return val
+
+    # Return base ingredient (last word fallback: "flour")
+    if ing.endswith("flour"):
+        return "flour"
+    if ing.endswith("breadcrumbs") or ing.endswith("breadcrumb"):
+        return "bread-crumb"
+
     return ing
 
