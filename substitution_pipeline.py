@@ -35,73 +35,91 @@ class SubstitutionEngine:
     """
 
     def __init__(self, substitution_map):
-        self.map = substitution_map  # dict: gluten ingredient → gluten-free version
+        self.map = substitution_map  # dict: gluten ingredient → { "substitute":..., "ratio":... }
         self.embedder = BertEmbedder()
-
-        # Precompute embeddings of gluten trigger keys
+        # Precompute embeddings on CPU via embed_texts (it returns CPU tensor)
         self.keys = list(self.map.keys())
-        self.key_vectors = self.embedder.embed_texts(self.keys)
+        # Use embed_texts (returns CPU tensor) and keep it there
+        with torch.no_grad():
+            self.key_vectors = self.embedder.embed_texts(self.keys, batch_size=64)  # (N, dim) CPU tensor
 
-        # GISMo graph (optional)
-        self.gismo = GISMo(self.map, embedder=self.embedder) if use_gismo else None
+        # GISMo / NER flags (ensure defined earlier)
+        try:
+            from utils.gismo import GISMo
+            self.gismo = GISMo(self.map, embedder=self.embedder)
+        except Exception:
+            self.gismo = None
 
-        # Food NER (optional)
-        self.ner = FoodNER(device=0 if torch.cuda.is_available() else -1) if use_ner else None
+        # Do not initialize heavy NER unless enabled; leave as None unless configured
+        self.ner = None
 
     def parse_line(self, text):
-        """Return (qty+unit, ingredient_name_only)"""
         text = text.strip()
         if NUTRITION_RE.match(text):
             return None, None
-
         parsed = parse_ingredient_line(text)
         qty = parsed.get("quantity") or ""
         unit = parsed.get("unit") or ""
         ingredient = parsed.get("ingredient") or ""
-        # normalize
         ingredient = normalize_ingredient_name(ingredient)
         return (qty + (" " + unit if unit else "")).strip(), ingredient
 
     def substitute(self, line):
-        """
-        Returns: (new_line, changed_flag)
-        """
-
-        qty, ingredient = self.parse_line(line)
-
+        qty_unit, ingredient = self.parse_line(line)
         if ingredient is None:
             return line, False
 
-        # 1️⃣ Exact match
+        # Exact match (map keys are normalized)
         if ingredient in self.map:
-            return f"{qty} {self.map[ingredient]}".strip(), True
+            entry = self.map[ingredient]
+            sub_name = entry.get("substitute") if isinstance(entry, dict) else entry
+            ratio = float(entry.get("ratio", 1.0)) if isinstance(entry, dict) else 1.0
+            # format quantity adjust if numeric
+            try:
+                qnum = float(qty_unit.split()[0]) if qty_unit and re.match(r'^\d+(\.\d+)?$', qty_unit.split()[0]) else None
+            except Exception:
+                qnum = None
+            if qnum is not None:
+                new_q = round(qnum * ratio, 2)
+                formatted = f"{new_q} {' '.join(qty_unit.split()[1:])} {sub_name}".strip()
+            else:
+                formatted = f"{qty_unit} {sub_name}".strip()
+            return formatted, True
 
-        # 2️⃣ Semantic fallback among gluten keys only
+        # Semantic fallback (ensure device alignment)
         with torch.no_grad():
-            v = self.embedder.embed(ingredient)
-            with torch.no_grad():
-                v = self.embedder.embed(ingredient)
-                key_vectors = self.key_vectors.to(v.device)  # move key_vectors to same device
-                sims = torch.nn.functional.cosine_similarity(v, key_vectors)
-                idx = torch.argmax(sims).item()
-                best_key = self.keys[idx]
-                score = sims[idx].item()
-
-            idx = torch.argmax(sims).item()
+            v = self.embedder.embed(ingredient)  # single vector (1,dim) on embedder.device
+            # move key_vectors to same device as v
+            key_vecs = self.key_vectors.to(v.device)
+            sims = torch.nn.functional.cosine_similarity(v, key_vecs, dim=1)
+            if sims.numel() == 0:
+                return line, False
+            idx = int(torch.argmax(sims).item())
+            score = float(sims[idx].item())
             best_key = self.keys[idx]
-            score = sims[idx].item()
 
-        # Too weak → try GISMo graph if available
+        # If similarity low, try GISMo if available
         if score < 0.85 and self.gismo is not None:
-            cand, gscore = self.gismo.best_substitute(ingredient)
+            try:
+                cand, gscore = self.gismo.best_substitute(ingredient)
+            except Exception:
+                cand, gscore = None, 0.0
             if cand and gscore >= 0.6:
-                sub = self.map.get(cand, self.map.get(cand, cand))
-                return f"{qty} {sub}".strip(), True
-            # else give up
+                sub_info = self.map.get(cand, {})
+                sub_name = sub_info.get("substitute") if isinstance(sub_info, dict) else sub_info
+                ratio = float(sub_info.get("ratio", 1.0)) if isinstance(sub_info, dict) else 1.0
+                # format
+                formatted = f"{qty_unit} {sub_name}".strip()
+                return formatted, True
             return line, False
 
-        sub = self.map[best_key]
-        return f"{qty} {sub}".strip(), True
+        # Use best_key
+        sub_info = self.map.get(best_key, {})
+        sub_name = sub_info.get("substitute") if isinstance(sub_info, dict) else sub_info
+        ratio = float(sub_info.get("ratio", 1.0)) if isinstance(sub_info, dict) else 1.0
+        formatted = f"{qty_unit} {sub_name}".strip()
+        return formatted, True
+
 
 def load_substitutions():
     """
