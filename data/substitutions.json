@@ -98,10 +98,5 @@
 	{
 		"substitute": "gluten-free cracker",
 		"ratio": 2.0
-	},
-	"wholemeal flour":
-	{
-		"substitute": "gluten-free blend",
-		"ratio": 1.25	
 	}
 }

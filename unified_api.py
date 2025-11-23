@@ -16,7 +16,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import traceback
-
+import json
 # ---------------------------------------------------------------------
 # Safe importer
 # ---------------------------------------------------------------------
@@ -45,47 +45,58 @@ class ProcessRequest(BaseModel):
 # ---------------------------------------------------------------------
 # URL Extraction
 # ---------------------------------------------------------------------
+# ---------- REPLACEMENT: robust extract_from_url ----------
+
 def extract_from_url(url: str):
-    """Return (ingredient_lines, instructions_text) extracted heuristically."""
+    """Return (ingredient_lines, instructions_text) extracted cleanly from a recipe page."""
     try:
         r = requests.get(url, timeout=10)
         soup = BeautifulSoup(r.text, "html.parser")
     except Exception:
         return [], ""
 
-    # Ingredient selectors
+    # --------- Clean out obviously irrelevant containers ---------
+    for junk in soup.select(
+        "header, footer, nav, script, style, noscript, .comments, #comments, .comment-list, "
+        ".related-posts, .sidebar, .footer, .advertisement, .ad, .promo"
+    ):
+        junk.decompose()
+
+    # --------- INGREDIENT SELECTORS ---------
     selectors = [
         '[itemprop="recipeIngredient"]',
-        '.ingredients-item-name',
-        '.recipe-ingredients__list-item',
-        'li.ingredient',
-        'span.ingredients-item-name',
-        '.ingredient'
+        "li.ingredient",
+        ".ingredient",
+        ".ingredients-item-name",
+        ".wprm-recipe-ingredient",
+        "li.ingredients-item",
+        ".recipe-ingredients__list-item",
     ]
 
     ing_lines = []
     for sel in selectors:
         for tag in soup.select(sel):
-            txt = tag.get_text(separator=" ", strip=True)
+            txt = tag.get_text(" ", strip=True)
             if txt:
                 ing_lines.append(txt)
 
-    # Fallback based on <li> & tokens
+    # Fallback: try bullet lists that LOOK like ingredients
     if not ing_lines:
         for li in soup.find_all("li"):
-            txt = li.get_text(separator=" ", strip=True)
-            if re.search(r'\b(cup|tsp|tbsp|ml|g|flour|sugar|salt|butter|egg)\b', txt, re.I):
-                ing_lines.append(txt)
+            t = li.get_text(" ", strip=True)
+            if re.search(r'\b(cup|tsp|tablespoon|gram|salt|sugar|flour|butter)\b', t, re.I):
+                ing_lines.append(t)
 
-    # Instructions selectors
+    # --------- INSTRUCTIONS SELECTORS ---------
     instr_selectors = [
         '[itemprop="recipeInstructions"]',
-        '.instructions-section',
-        '.directions',
-        '.method-steps',
-        '.recipe-directions__list',
-        'ol.instructions',
-        'ol'
+        ".wprm-recipe-instruction-text",
+        ".instructions",
+        ".method-steps",
+        ".directions",
+        ".recipe-directions__list",
+        "ol.instructions",
+        "ol.method",
     ]
 
     instructions_text = ""
@@ -96,24 +107,38 @@ def extract_from_url(url: str):
             instructions_text = "\n".join(texts).strip()
             break
 
-    # Fallback based on verbs
+    # Fallback: paragraphs with cooking verbs
     if not instructions_text:
-        paragraphs = [p.get_text(" ", strip=True) for p in soup.find_all("p")]
-        candidates = [
-            p for p in paragraphs
-            if re.search(r'\b(mix|bake|stir|cook|whisk|simmer|fold)\b', p, re.I)
-        ]
-        instructions_text = "\n".join(candidates[:10]).strip()
+        verbs = r"(mix|whisk|stir|bake|fold|heat|cook|combine|pour|spread|preheat|simmer)"
+        candidates = []
+        for p in soup.find_all("p"):
+            text = p.get_text(" ", strip=True)
+            if re.search(verbs, text, re.I):
+                candidates.append(text)
+        instructions_text = "\n".join(candidates[:10])
 
-    # Deduplicate
+    # --------- Final clean: remove comments, dates, "Reply ↓" ---------
+    bad_patterns = [
+        r"\b\d{1,2}\.\d{1,2}\.\d{4}\b",
+        r"Reply\s*↓",
+        r"^\s*[A-Za-z]+ \d{1,2}, \d{4}",
+        r"^\s*\d{1,2}\s*$",
+        r"Healthy Muffin Recipes",
+        r"Baking Dish",
+    ]
+
+    clean_ing = []
     seen = set()
-    clean = []
+
     for l in ing_lines:
+        l = re.sub(r"\s+", " ", l).strip()
+        if any(re.search(bp, l, re.I) for bp in bad_patterns):
+            continue
         if l not in seen:
-            clean.append(re.sub(r'\s+', ' ', l).strip())
+            clean_ing.append(l)
             seen.add(l)
 
-    return clean, instructions_text
+    return clean_ing, instructions_text.strip()
 
 
 # ---------------------------------------------------------------------
@@ -209,92 +234,90 @@ def contains_gluten(ingredient_name: str) -> bool:
 def process(req: ProcessRequest):
     load_models()
 
-    # Decide what the user gave us
+    # 1) Resolve input -> raw_lines
+    raw_lines = []
     if req.ingredients:
-        lines = req.ingredients
+        raw_lines = [l.strip() for l in req.ingredients if l and l.strip()]
     elif req.raw_text:
-        if Registry.foodner:
-            try:
-                lines = Registry.foodner.extract_ingredients(req.raw_text)
-            except Exception:
-                lines = [l.strip() for l in req.raw_text.split("\n") if l.strip()]
-        else:
-            lines = [l.strip() for l in req.raw_text.split("\n") if l.strip()]
+        # if FoodNER present, try it (our DummyNER returns lines)
+        try:
+            raw_lines = Registry.foodner.extract_ingredients(req.raw_text)
+        except Exception:
+            raw_lines = [l.strip() for l in req.raw_text.split("\n") if l.strip()]
     elif req.url:
-        lines, auto_instr = extract_from_url(req.url)
+        raw_lines, auto_instr = extract_from_url(req.url)
         if auto_instr and not req.instructions:
             req.instructions = auto_instr
     else:
         raise HTTPException(status_code=400, detail="Provide ingredients, raw_text, or url.")
 
-    # Parse each ingredient
+    # 2) Filter lines using classifier (if available) and light heuristic
+    filtered = []
+    # if you have a classifier model, call it here; otherwise use heuristics
+    def looks_like_ingredient(line):
+        # quick heuristics: contains measurement or number OR common food words
+        if re.search(r'\d', line) or re.search(r'\b(cup|tsp|tbsp|gram|g|oz|ml|stick|slice|teaspoon|tablespoon|kg|pound)\b', line, re.I):
+            return True
+        # avoid lines that look like comments / long paragraphs
+        if len(line) > 250: 
+            return False
+        if re.search(r'(Reply|Comment|©|Subscribe|Follow)', line, re.I):
+            return False
+        return True
+
+    for l in raw_lines:
+        if Registry.ingredient_parser:
+            parsed_tmp = Registry.ingredient_parser.parse(l)
+            if parsed_tmp and parsed_tmp.get("ingredient"):
+                # the parser found an ingredient field — keep
+                filtered.append(l)
+                continue
+        # fallback heuristic
+        if looks_like_ingredient(l):
+            filtered.append(l)
+
+    # 3) Parse and run substitution
     parsed_output = []
-    for line in lines:
-        parsed = Registry.ingredient_parser.parse(line)
-        parsed_output.append({"original": line, "parsed": parsed})
-
-    # Substitutions
     subs_output = []
-    for entry in parsed_output:
-        orig = entry["original"]
-        name = entry["parsed"].get("ingredient", "").lower()
-
+    for l in filtered:
+        parsed = Registry.ingredient_parser.parse(l)
+        parsed_output.append({"original": l, "parsed": parsed})
+        # detect gluten
+        name = (parsed.get("ingredient") or "").lower()
         if not name:
-            subs_output.append({"original": orig, "converted": orig, "status": "not_parsed"})
+            subs_output.append({"original": l, "converted": l, "status": "not_parsed"})
             continue
-
         if not contains_gluten(name):
-            subs_output.append({"original": orig, "converted": orig, "status": "gluten_free"})
+            subs_output.append({"original": l, "converted": l, "status": "gluten_free"})
             continue
+        try:
 
-        # Try substitution engine
-        conv, changed = Registry.substitution_engine.substitute(orig)
-        # If substitution engine returned a dict, convert it to readable text
-        if isinstance(conv, dict) and "substitute" in conv:
-            qty = entry["parsed"].get("quantity", "")
-            unit = entry["parsed"].get("unit", "")
-            sub = conv["substitute"]
-            ratio = conv.get("ratio", 1)
+            conv, changed = Registry.substitution_engine.substitute(l)
+        except Exception:
+            conv, changed = l, False
 
-            # Quantity scaling
-            try:
-                scaled_qty = float(qty) * float(ratio)
-                qty_out = f"{scaled_qty:g}"
-            except:
-                qty_out = qty
-
-            conv = f"{qty_out} {unit} {sub}".strip()
-
-        # If GISMo exists but SubEngine didn't change anything
+        # GISMo fallback if not changed (optional)
         if not changed and Registry.gismo:
-            ranked = Registry.gismo.rank_substitutes(name, top_k=3)
-            if ranked:
-                candidate = ranked[0][0]
-                sub_info = Registry.substitutions_json.get(candidate)
-                if sub_info:
-                    qty = entry["parsed"].get("quantity", "")
-                    unit = entry["parsed"].get("unit", "")
-                    conv = f"{qty} {unit} {sub_info['substitute']}".strip()
+            try:
+                ranked = Registry.gismo.rank_substitutes(name, top_k=3)
+                if ranked:
+                    cand = ranked[0][0]
+                    sub_info = Registry.substitutions_json.get(cand, {})
+                    conv = f"{parsed.get('quantity') or ''} {parsed.get('unit') or ''} {sub_info.get('substitute')}".strip() if sub_info else conv
                     changed = True
+            except Exception:
+                pass
 
-        subs_output.append({
-            "original": orig,
-            "converted": conv,
-            "status": "substituted" if changed else "no_substitute_found"
-        })
+        status = "substituted" if changed else "no_substitute_found"
+        subs_output.append({"original": l, "converted": conv, "status": status})
 
-    # Rewrite instructions
-    rewritten = None
+    # 4) Rewrite instructions using SHARE
     try:
         rewritten = Registry.share_rewriter.rewrite(req.instructions or "", subs_output)
     except Exception:
         rewritten = req.instructions or ""
 
-    return {
-        "parsed": parsed_output,
-        "substitutions": subs_output,
-        "rewritten": rewritten
-    }
+    return {"parsed": parsed_output, "substitutions": subs_output, "rewritten": rewritten}
 
 
 # ---------------------------------------------------------------------
