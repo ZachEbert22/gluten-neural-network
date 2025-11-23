@@ -27,33 +27,35 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import requests
 
-ROOT = Path(".")
+# Absolute path to this file
+BASE_DIR = Path(__file__).resolve().parent
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "..", "data")
+# /data directory lives one level above /tools
+DATA_DIR = (BASE_DIR / ".." / "data").resolve()
 
-REPORTS_DIR = ROOT / "reports"
+ROOT = BASE_DIR.parent
+REPORTS_DIR = ROOT / "tools" / "reports"
 PLOTS_DIR = REPORTS_DIR / "plots"
 STATS_DIR = REPORTS_DIR / "stats"
 PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 STATS_DIR.mkdir(parents=True, exist_ok=True)
-import os
-
 
 def load_prediction_log():
-    log_file = os.path.join(DATA_DIR, "prediction_log.jsonl")
+    log_path = DATA_DIR / "prediction_log.jsonl"
 
-    if not os.path.isfile(log_file):
-        print(f"Could not find prediction_log.jsonl at: {log_file}")
+    if not log_path.exists():
+        print(f"[WARN] prediction_log.jsonl not found at: {log_path}")
         return []
 
     lines = []
-    with open(log_file, "r", encoding="utf-8") as f:
+    with open(log_path, "r", encoding="utf-8") as f:
         for line in f:
             try:
                 lines.append(json.loads(line))
-            except:
+            except Exception:
                 pass
+
+    print(f"[OK] Loaded {len(lines)} prediction log entries from {log_path}")
     return lines
 
 # For fallback embedding-based confidence
@@ -261,7 +263,6 @@ def confidence_dropoff(lines, host=None):
             # load substitutions.json as candidates
             sj = DATA_DIR / "substitutions.json"
             if sj.exists():
-                import json
                 with open(sj, "r") as f:
                     subsd = json.load(f)
                 # candidates = [k for k in subsd.keys()]
@@ -347,6 +348,51 @@ def confidence_dropoff(lines, host=None):
     return rows
 
 # -------------------------
+# 9) Most Common Ingredients & Substitutions
+# -------------------------
+def common_ingredient_stats():
+    rows = load_prediction_log()
+    if not rows:
+        print("[WARN] No prediction log data available for frequency stats.")
+        return
+
+    orig_counter = Counter()
+    sub_counter = Counter()
+
+    for entry in rows:
+        subs = entry.get("substitutions", [])
+        for s in subs:
+            orig = (s.get("original") or "").strip().lower()
+            conv = (s.get("converted") or "").strip().lower()
+            if orig:
+                orig_counter[orig] += 1
+            if conv:
+                sub_counter[conv] += 1
+
+    # Convert to pandas for plotting
+    orig_df = pd.DataFrame(orig_counter.most_common(20), columns=["ingredient", "count"])
+    sub_df = pd.DataFrame(sub_counter.most_common(20), columns=["ingredient", "count"])
+
+    # Plot originals
+    plt.figure(figsize=(10, 6))
+    plt.barh(orig_df["ingredient"], orig_df["count"])
+    plt.title("Top 20 Most Common Original Ingredients")
+    plt.tight_layout()
+    plt.savefig(PLOTS_DIR / "09_common_original_ingredients.png", dpi=150)
+    plt.close()
+
+    # Plot substitutes
+    plt.figure(figsize=(10, 6))
+    plt.barh(sub_df["ingredient"], sub_df["count"])
+    plt.title("Top 20 Most Common Substituted Ingredients")
+    plt.tight_layout()
+    plt.savefig(PLOTS_DIR / "09_common_substitutes.png", dpi=150)
+    plt.close()
+
+    print("Saved 09_common_* plots")
+
+
+# -------------------------
 # Main
 # -------------------------
 def main():
@@ -366,6 +412,9 @@ def main():
 
     print("Running confidence drop-off analysis (flour)...")
     conf = confidence_dropoff(lines, host=args.host)
+
+    print("Running common ingredient frequency analysis...")
+    common_ingredient_stats()
 
     print("Backend stats complete. Check reports/plots and reports/stats.")
 

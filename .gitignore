@@ -5,4 +5,5 @@ models/__pycache__/*
 utils/__pycache__/*
 data/ingredient_classifier_dataset.csv
 data/ingredient_dataset.csv
+data/prediction_log.jsonl
 
