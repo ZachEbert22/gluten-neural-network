@@ -1,0 +1,20 @@
+{
+  "top_labels": [
+    "\"salt\"",
+    "\"sugar\"",
+    "\"butter\"",
+    "\"eggs\"",
+    "\"flour\"",
+    "\"milk\"",
+    "c(\"butter\"",
+    "\"baking powder\"",
+    "\"brown sugar\"",
+    "\"egg\"",
+    "\"vanilla\"",
+    "\"olive oil\""
+  ],
+  "matrix_shape": [
+    12,
+    12
+  ]
+}
