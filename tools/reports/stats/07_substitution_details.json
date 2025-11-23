@@ -1,0 +1,1010 @@
+{
+  "coverage": {
+    "total": 500,
+    "detectable": 494,
+    "can_sub": 60,
+    "substitution_rate_pct": 12.145748987854251
+  },
+  "details_sample": [
+    {
+      "original": "There is NOTHING wrong with eating raw meat. You MUST go to a reputable butcher, one who washes his grinder after each grinding of different meat. You also must get the best quality of meat and let the butcher know that you will be consuming the meat raw. Eating raw meat in NOT gross. Alot of people - mostly of European/Asian/African decent eat meat raw and ENJOY it. I personaly eat steak tartar, and a version made of pork (YES raw pork!) but I only buy it from one German butcher in Toronto and consume it right away on fresh bread. I also eat an Ethiopan dish of raw cubed steak in a spicy sauce and sushi with raw fish. YUM!!!! Befor you start slaming food, you should try it. There are far more non North Americans who eat raw meat than North Americans who don't.",
+      "converted": "gluten-free bread",
+      "status": "substituted"
+    },
+    {
+      "original": "It's never 5 star without adding cumin, just my opinion. Love some Guac!",
+      "converted": "It's never 5 star without adding cumin, just my opinion. Love some Guac!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I was asked to put this on the regular menu rotation (which is a big deal considering the men in the family aren't big on fish).  I prepared it as specified, only I added a little lemon pepper to give it a little zip.  It was perfect!",
+      "converted": "I was asked to put this on the regular menu rotation (which is a big deal considering the men in the family aren't big on fish).  I prepared it as specified, only I added a little lemon pepper to give it a little zip.  It was perfect!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Made this tonight, it was fabulous. My Husband says a defintley keeper :) The only thing I did different is I put onion powder in with soup and gravy mixture just cause my Husband doesn&#039;t like onions but he likes flavor of them.",
+      "converted": "Made this tonight, it was fabulous. My Husband says a defintley keeper :) The only thing I did different is I put onion powder in with soup and gravy mixture just cause my Husband doesn&#039;t like onions but he likes flavor of them.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "These were pretty easy to make and tasty. I cooked them longer than 15 minutes because they did not really turn brown, but probably could have taken them out at 15 min. and they would have been fine. I brushed them with melted earthbalance butter, garlic salt, and nutritional yeast and they were good right out of the oven and even reheated the next day.",
+      "converted": "These were pretty easy to make and tasty. I cooked them longer than 15 minutes because they did not really turn brown, but probably could have taken them out at 15 min. and they would have been fine. I brushed them with melted earthbalance butter, garlic salt, and nutritional yeast and they were good right out of the oven and even reheated the next day.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"mustard powder\"",
+      "converted": "\"mustard powder\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "easy to make and the family loved them",
+      "converted": "easy to make and the family loved them",
+      "status": "gluten_free"
+    },
+    {
+      "original": "First of all, once I made my own adjustments, it was a fabulous recipe. But I didn't know which measurment was baking powder and which was baking soda, so I used 1 1/2 teaspoons of each.  I also added 1/4 cup ground flax, 1/4 cup oat bran, and about a cup of chopped walnuts.  I then added a little more eggbeaters (which I use when a recipe calls for egg whites) and oil to keep it moist. So it made 18 muffins. It is a FABULOUS-tasting muffin.  Healthy, too!!",
+      "converted": "1 1/2 teaspoons gluten-free muffin",
+      "status": "substituted"
+    },
+    {
+      "original": "\"sugar\"",
+      "converted": "\"sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "WOW! this recipe is so divine. I used fresh green beans and the way I did mine was I steamed them for 5-8 minutes and let them cool for minute or so and than instead of cutting bacon in half I just rolled a bundle of beans with one strip. We really loved the flavor and I was happy that it was a easy way of making green beans totally different from the regular way of making beans. I will be making these again in the near future! Thanks for sharing your recipe Rachel Lynn!",
+      "converted": "WOW! this recipe is so divine. I used fresh green beans and the way I did mine was I steamed them for 5-8 minutes and let them cool for minute or so and than instead of cutting bacon in half I just rolled a bundle of beans with one strip. We really loved the flavor and I was happy that it was a easy way of making green beans totally different from the regular way of making beans. I will be making these again in the near future! Thanks for sharing your recipe Rachel Lynn!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I was disappointed by this recipe. For one, I would hardly call it a crock pot recipe. Most of work is done on the stove in a separate pan - using the crock pot is just an after-thought. For two, it's really uninspiring. Does it takes like mac and cheese? Sure, but it's not the jaw-dropping, gotta-have-it kind. Plus as a busy mom, I don't think as being useful. I had to put in extra spices (like pepper) to give it any kind of taste. My kids liked it, but they even weren't excited by it. That should say it all.",
+      "converted": "I was disappointed by this recipe. For one, I would hardly call it a crock pot recipe. Most of work is done on the stove in a separate pan - using the crock pot is just an after-thought. For two, it's really uninspiring. Does it takes like mac and cheese? Sure, but it's not the jaw-dropping, gotta-have-it kind. Plus as a busy mom, I don't think as being useful. I had to put in extra spices (like pepper) to give it any kind of taste. My kids liked it, but they even weren't excited by it. That should say it all.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "c(\"butter\"",
+      "converted": "c(\"butter\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Delicious!  This has a great combination of flavors and is a great fall salad.  I took it to a party and got lots of compliments.  I roasted the squash instead of boiling it; I cut it into chunks as directed and then put them in a 9x13 pan, and drizzled them with olive oil and sprinkled with salt and pepper.  Then they went into a 400F oven for ~35 minutes; I added the raisins for the last five minutes or so.  I would not hesitate to make this again!",
+      "converted": "Delicious!  This has a great combination of flavors and is a great fall salad.  I took it to a party and got lots of compliments.  I roasted the squash instead of boiling it; I cut it into chunks as directed and then put them in a 9x13 pan, and drizzled them with olive oil and sprinkled with salt and pepper.  Then they went into a 400F oven for ~35 minutes; I added the raisins for the last five minutes or so.  I would not hesitate to make this again!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "All the other reviews don&#039;t lie. This was loved by all and was super easy to make. Also made for great leftovers today! I realized that the packets of dressing I bought were smaller than the recipe called for, which turned out great.  Made for Think Pink 2013.",
+      "converted": "All the other reviews don&#039;t lie. This was loved by all and was super easy to make. Also made for great leftovers today! I realized that the packets of dressing I bought were smaller than the recipe called for, which turned out great.  Made for Think Pink 2013.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"sugar\")",
+      "converted": "\"sugar\")",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"baking powder\"",
+      "converted": "\"baking powder\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "For someone who loves Mexican food as much as I do, for some odd reason I'd never made fajitas before!  These came out soooo great, rave reviews from everyone I served!  I made another batch and packaged (uncooked) and froze small portions to use for a quick, oh so tasty!, lunch or appetizer.",
+      "converted": "For someone who loves Mexican food as much as I do, for some odd reason I'd never made fajitas before!  These came out soooo great, rave reviews from everyone I served!  I made another batch and packaged (uncooked) and froze small portions to use for a quick, oh so tasty!, lunch or appetizer.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "These came out pretty good. I little on the dry side but maybe that is the way they were supposed to be? Thank you for sharing.",
+      "converted": "These came out pretty good. I little on the dry side but maybe that is the way they were supposed to be? Thank you for sharing.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "These cupcakes came out awful. They were way too sweet and I added extra flour. They do not taste anything like Oreo and the picture is not of the actual cupcakes. Horrible simply horrible and I bake all the time and have used several recipes from this website and I basically have to throw the whole batch out.",
+      "converted": "gluten-free flour",
+      "status": "substituted"
+    },
+    {
+      "original": "\"2% low-fat milk\"",
+      "converted": "\"2% low-fat milk\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"confectioners' sugar\"",
+      "converted": "\"confectioners' sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"granulated sugar\"",
+      "converted": "\"granulated sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Searching for simple recipe &amp; found this. This really come up with good one.",
+      "converted": "Searching for simple recipe &amp; found this. This really come up with good one.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This is a wonderful cocktail sauce, and so easy to make.  It's best made a little ahead.  We've had it with shrimp and with crabcakes.  DH even made it all by himself once!!!  Thanks, Darlene.",
+      "converted": "This is a wonderful cocktail sauce, and so easy to make.  It's best made a little ahead.  We've had it with shrimp and with crabcakes.  DH even made it all by himself once!!!  Thanks, Darlene.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"flour\"",
+      "converted": "{'substitute': 'gluten-free flour', 'ratio': 0.75}",
+      "status": "substituted"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Love this recipe! I added extra blueberries and a splash of buttermilk, as I had less than 8 ounces of yogurt.  The muffins taste like a bowl of blueberry-cinnamon oatmeal and are nice and moist.  I also added a bit more brown sugar.  I also reduced the temperature to 375 because I used frozen blueberries and wanted to make sure they baked through in the middle.  I will definitely make them again-soon!  Planning on trying greek yogurt next time to boost the protein further. I added only cinnamon and salt-left out the nutmeg-personal preference.  Yummy!",
+      "converted": "8 ounces gluten-free muffin",
+      "status": "substituted"
+    },
+    {
+      "original": "\"extra virgin olive oil\"",
+      "converted": "\"extra virgin olive oil\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"white bread flour\"",
+      "converted": "gluten-free flour",
+      "status": "substituted"
+    },
+    {
+      "original": "\"eggs\"",
+      "converted": "\"eggs\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "c(\"milk\"",
+      "converted": "c(\"milk\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "The best thing about this bread is the crust...it's thick and chewy like one of those overpriced rustic breads in the store bakeries :-)",
+      "converted": "gluten-free bread",
+      "status": "substituted"
+    },
+    {
+      "original": "We loved this and will be making it often.",
+      "converted": "We loved this and will be making it often.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"butter\"",
+      "converted": "\"butter\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"sugar\"",
+      "converted": "\"sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I made these for supper tonight. I was impressed at how easy they were to throw together. I crushed homemade croutons to make my breadcrumbs.",
+      "converted": "gluten-free bread",
+      "status": "substituted"
+    },
+    {
+      "original": "\"eggs\"",
+      "converted": "\"eggs\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This was AWESOME!! As others noted, the chicken was melt in your mouth tasty.  And quick and easy - which I love!  I used italian breadcrumbs and lite dressing, but other than that followed the recipe.  This is a keeper!",
+      "converted": "gluten-free bread",
+      "status": "substituted"
+    },
+    {
+      "original": "This is a great recipe. Rave reviews on the muffins. I have also used other fruit (raspberries,blackberries). All came out super.",
+      "converted": "gluten-free muffin",
+      "status": "substituted"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Can't believe I haven't 5*d before! We love this recipe! Frankly I don't like all those marshmallowy sweet preparations for sweet potatoes. This is great! I have some in the oven now, but at 325 degrees because I have a small roast of pork in there too.....haven't tried that low twmp. before....we'll see!",
+      "converted": "Can't believe I haven't 5*d before! We love this recipe! Frankly I don't like all those marshmallowy sweet preparations for sweet potatoes. This is great! I have some in the oven now, but at 325 degrees because I have a small roast of pork in there too.....haven't tried that low twmp. before....we'll see!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"brown sugar\"",
+      "converted": "\"brown sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Me and my son loved this carrot salad.  DH didn't but it's probably because of the mayo or maple syrup.  Anyway, it will be for my lunch and for my son.  He wanted a bowl after his bath.  I used pure maple syrup from my cousin.  Thanks Annacia :)  made for PRMR tag game",
+      "converted": "Me and my son loved this carrot salad.  DH didn't but it's probably because of the mayo or maple syrup.  Anyway, it will be for my lunch and for my son.  He wanted a bowl after his bath.  I used pure maple syrup from my cousin.  Thanks Annacia :)  made for PRMR tag game",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Good to see this very simple dessert recipe in print.  Have had it for a long time but usually only use blueberries.  Now I will try other berries.   So easy to prepare while guests sit and chat after a big dinner and people are impressed with the crunchiness of the frozen berries and the hot sauce.  Thanks Sarah Jayne",
+      "converted": "Good to see this very simple dessert recipe in print.  Have had it for a long time but usually only use blueberries.  Now I will try other berries.   So easy to prepare while guests sit and chat after a big dinner and people are impressed with the crunchiness of the frozen berries and the hot sauce.  Thanks Sarah Jayne",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"milk\"",
+      "converted": "\"milk\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "c(\"butter\"",
+      "converted": "c(\"butter\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Way out of this world good! Spiced up with honey and cinnamon.",
+      "converted": "Way out of this world good! Spiced up with honey and cinnamon.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "c(\"butter\"",
+      "converted": "c(\"butter\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "YUM!!! I am the only one in my house that eats coconut, so these are my guilty pleasure.It reminds me of when I was a teenager and was babysitting for a woman who used to make these.LOVE THEM. Thanks.",
+      "converted": "YUM!!! I am the only one in my house that eats coconut, so these are my guilty pleasure.It reminds me of when I was a teenager and was babysitting for a woman who used to make these.LOVE THEM. Thanks.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"baking soda\"",
+      "converted": "\"baking soda\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"skim milk\")",
+      "converted": "\"skim milk\")",
+      "status": "gluten_free"
+    },
+    {
+      "original": "First time making chicken noodle soup - fantastic! I used some chicken broth I had left from making shredded chicken earlier in the week so it ended up being half broth & half water. Also first time using leek. I've never been a fan of chicken noodle soup since the stuff out of the can always seems... slimy. But this stuff is slime-free. Very mild too. Perhaps I'll add a little more spice next t ime.",
+      "converted": "First time making chicken noodle soup - fantastic! I used some chicken broth I had left from making shredded chicken earlier in the week so it ended up being half broth & half water. Also first time using leek. I've never been a fan of chicken noodle soup since the stuff out of the can always seems... slimy. But this stuff is slime-free. Very mild too. Perhaps I'll add a little more spice next t ime.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"confectioners' sugar\"",
+      "converted": "\"confectioners' sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "YUM,YUM great recipe. I pounded the chicken to about 1/4 inch thick & cut them in half before dipping it into the egg and bread crumbs. The sauce is Delicious, I doubled the sauce recipe & thickend it with a little cornstarch. I will be making this again tasty & easy.",
+      "converted": "1/4 gluten-free bread",
+      "status": "substituted"
+    },
+    {
+      "original": "c(\"flour\"",
+      "converted": "gluten-free flour",
+      "status": "substituted"
+    },
+    {
+      "original": "I did add more bacon but really enjoyed this.  The bacon and liquid smoke add great flavor and the horseradish adds just the right kick.",
+      "converted": "I did add more bacon but really enjoyed this.  The bacon and liquid smoke add great flavor and the horseradish adds just the right kick.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"vanilla extract\")",
+      "converted": "\"vanilla extract\")",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "c(\"flour\"",
+      "converted": "gluten-free flour",
+      "status": "substituted"
+    },
+    {
+      "original": "This was different. It was o.k. Came out better than I thoght this would. I would like to try this again when I put steak in my salad.",
+      "converted": "This was different. It was o.k. Came out better than I thoght this would. I would like to try this again when I put steak in my salad.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"olive oil\"",
+      "converted": "\"olive oil\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "c(\"butter\"",
+      "converted": "c(\"butter\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This was so good and very simple. Reheated great for leftovers.",
+      "converted": "This was so good and very simple. Reheated great for leftovers.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "c(\"butter\"",
+      "converted": "c(\"butter\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "We left out the basil because we aren't big basil fans around here, but this was super! I love that the noodles are added into the pot and I don't have to cook them separately. Super easy. We used Penne noodles and after 45 minutes on low, they were almost overdone, so I'd watch the noodles a little more next time, but the taste was good, my kids liked it and it was perfect for cool Fall evening!",
+      "converted": "We left out the basil because we aren't big basil fans around here, but this was super! I love that the noodles are added into the pot and I don't have to cook them separately. Super easy. We used Penne noodles and after 45 minutes on low, they were almost overdone, so I'd watch the noodles a little more next time, but the taste was good, my kids liked it and it was perfect for cool Fall evening!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"vanilla\"",
+      "converted": "\"vanilla\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I'm not sure what I did wrong with these, but I was so disappointed. I had bought some of the Nestle white chocolate  swirls morsels(red and green)to make these for my Christmas cookie trays. They baked up as big fat blobs. I tried to smooth them out so they would look more like snowflakes but that didn't help. So I thought I'd just keep them for the house since they didn't look good.I tasted one cookie and I didn't even finish cooking the rest of the recipe, I just threw everything away. Maybe somebody can tell me if I did something wrong, although I followed the recipe exactly. Thanks anyway",
+      "converted": "I'm not sure what I did wrong with these, but I was so disappointed. I had bought some of the Nestle white chocolate  swirls morsels(red and green)to make these for my Christmas cookie trays. They baked up as big fat blobs. I tried to smooth them out so they would look more like snowflakes but that didn't help. So I thought I'd just keep them for the house since they didn't look good.I tasted one cookie and I didn't even finish cooking the rest of the recipe, I just threw everything away. Maybe somebody can tell me if I did something wrong, although I followed the recipe exactly. Thanks anyway",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This recipe was delicious and easy to prepare.  I was also able to purchase all of the ingredients in our small town grocery store.  Even my \"picky\" daughter love the pork and the sauce.",
+      "converted": "This recipe was delicious and easy to prepare.  I was also able to purchase all of the ingredients in our small town grocery store.  Even my \"picky\" daughter love the pork and the sauce.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"sugar\"",
+      "converted": "\"sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Excellent recipe. This cake is very moist and full of flavor with just the right amount of cinnamon. It's also very easy to make. I used 4 golden delicious apples. Thanks for sharing your recipe. :)",
+      "converted": "Excellent recipe. This cake is very moist and full of flavor with just the right amount of cinnamon. It's also very easy to make. I used 4 golden delicious apples. Thanks for sharing your recipe. :)",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Nice simple and fast recipe.  I made a batch, ate half and froze half for afters!! Nice treat.",
+      "converted": "Nice simple and fast recipe.  I made a batch, ate half and froze half for afters!! Nice treat.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Same recipe my grandmother passed on to me (from her mother).  Best from-scratch recipe I have ever tasted or used.  Thank you for posting it.",
+      "converted": "Same recipe my grandmother passed on to me (from her mother).  Best from-scratch recipe I have ever tasted or used.  Thank you for posting it.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This was the first time I have made Clam Chowder and let me tell you, this recipe was wonderful. The only thing different was I made a bigger batch, and I added clam sauce. I think next time I'll add a little bit of chicken base as well. Very good recipe, outstanding!",
+      "converted": "This was the first time I have made Clam Chowder and let me tell you, this recipe was wonderful. The only thing different was I made a bigger batch, and I added clam sauce. I think next time I'll add a little bit of chicken base as well. Very good recipe, outstanding!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"eggs\"",
+      "converted": "\"eggs\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Simple to make and looks very nice on the plate. The dill and Dijon are a good combination.  I might add some parmesan or other cheese next time.  My fillets were small so I only cooked this for 10 min. in a convection oven and they were just right.  I did not use the carrots but increased the amount of asparagus to 4-5 spears per fillet.  Delicious!",
+      "converted": "Simple to make and looks very nice on the plate. The dill and Dijon are a good combination.  I might add some parmesan or other cheese next time.  My fillets were small so I only cooked this for 10 min. in a convection oven and they were just right.  I did not use the carrots but increased the amount of asparagus to 4-5 spears per fillet.  Delicious!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"eggs\"",
+      "converted": "\"eggs\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"butter\"",
+      "converted": "\"butter\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Excellent! Very moist and I loved the combination of flavors.",
+      "converted": "Excellent! Very moist and I loved the combination of flavors.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "c(\"eggs\"",
+      "converted": "c(\"eggs\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"light-brown sugar\"",
+      "converted": "\"light-brown sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"evaporated milk\"",
+      "converted": "\"evaporated milk\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This salad was absolutely delicious!!  My husband and I like things spicy so I added 4 chipolte peppers and a lot of pepper.  Will be making this again and again and again . . .  Thanks for such a great recipe!!",
+      "converted": "This salad was absolutely delicious!!  My husband and I like things spicy so I added 4 chipolte peppers and a lot of pepper.  Will be making this again and again and again . . .  Thanks for such a great recipe!!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"baking chocolate\"",
+      "converted": "\"baking chocolate\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This is really good - the coating is delish!",
+      "converted": "This is really good - the coating is delish!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"butter\")",
+      "converted": "\"butter\")",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"baking powder\"",
+      "converted": "\"baking powder\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I made these to go with my favorite comfort food of all time.  Chicken and noodles.  I left them kind of thick because I like them a little chewy.  I had bought a store rottisorie chicken the night before and used the carcass to make one of the most delicious stocks I have ever made.  I used some of the cooled broth instead of water in the noodles.  They were delicious. I look forward to making them often.  Thank you for posting your recipe.",
+      "converted": "I made these to go with my favorite comfort food of all time.  Chicken and noodles.  I left them kind of thick because I like them a little chewy.  I had bought a store rottisorie chicken the night before and used the carcass to make one of the most delicious stocks I have ever made.  I used some of the cooled broth instead of water in the noodles.  They were delicious. I look forward to making them often.  Thank you for posting your recipe.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"butter\"",
+      "converted": "\"butter\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"eggs\")",
+      "converted": "\"eggs\")",
+      "status": "gluten_free"
+    },
+    {
+      "original": "LOVED IT!  I used Velveeta cheese and omitted the breadcrumbs as DH doesn't like them. My children gobbled it up.  I will definitely be making this again - it's very easy and OH SO delicious.  Thanks for the great recipe!",
+      "converted": "gluten-free bread",
+      "status": "substituted"
+    },
+    {
+      "original": "\"butter\"",
+      "converted": "\"butter\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"pure vanilla extract\"",
+      "converted": "\"pure vanilla extract\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This was an excellent way to serve asparagus...thank you",
+      "converted": "This was an excellent way to serve asparagus...thank you",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Made spaghetti the other evening and hubby MUST have bread with spaghetti. Thought this looked quick and easy. Everyone enjoyed this. I made this exactly as written. Made for Family Picks ZWT5.",
+      "converted": "Made spaghetti the other evening and hubby MUST have bread with spaghetti. Thought this looked quick and easy. Everyone enjoyed this. I made this exactly as written. Made for Family Picks ZWT5.",
+      "status": "not_parsed"
+    },
+    {
+      "original": "\"sugar\"",
+      "converted": "\"sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Easy to put together and tasty! I used light mayo and sprinkled a little seasoned salt on the mayo. It was even better the second day. I expected the lettuce to be wilted, but it wasn't.  Made for Spring 2011 PAC",
+      "converted": "Easy to put together and tasty! I used light mayo and sprinkled a little seasoned salt on the mayo. It was even better the second day. I expected the lettuce to be wilted, but it wasn't.  Made for Spring 2011 PAC",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Just looking at he picture I had to make these divine rolls! These went so well with our meal.  Everyone dug in and before I knew it the plate was empty!  So much for my second one :)  Guess I'll have to make them again so I can have as many as I want!  Thanks for this recipe!",
+      "converted": "Just looking at he picture I had to make these divine rolls! These went so well with our meal.  Everyone dug in and before I knew it the plate was empty!  So much for my second one :)  Guess I'll have to make them again so I can have as many as I want!  Thanks for this recipe!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"milk\"",
+      "converted": "\"milk\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Fantastic - love things with almond flavoring!  Mine was extra rich 'cause I messed up and added a whole cup of s. cream.  Will definitely make again with proper measurements!  A keeper!",
+      "converted": "Fantastic - love things with almond flavoring!  Mine was extra rich 'cause I messed up and added a whole cup of s. cream.  Will definitely make again with proper measurements!  A keeper!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I am about to cook chicken in the pressure cooker. It cooks in 12 minutes.",
+      "converted": "I am about to cook chicken in the pressure cooker. It cooks in 12 minutes.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "These sweet little gems are delicious. Love the apple and carrot mix, and that they are low fat. Made using Splenda Brown Sugar. Thanks for the yummy post.",
+      "converted": "These sweet little gems are delicious. Love the apple and carrot mix, and that they are low fat. Made using Splenda Brown Sugar. Thanks for the yummy post.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I was looking for an apple pie that could be used with a gluten free pie crust.  This one looked interesting and we tried it.  My husband and I both loved it.  I also like the fact that the recipe is gluten free so I didn't have to change anything in it.  Thanks.",
+      "converted": "I was looking for an apple pie that could be used with a gluten free pie crust.  This one looked interesting and we tried it.  My husband and I both loved it.  I also like the fact that the recipe is gluten free so I didn't have to change anything in it.  Thanks.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I made these yesterday and followed the recipe, doubled for 5 lbs of ribs. The result was incredible. Froze the leftovers to enjoy later. Will be making these often!",
+      "converted": "I made these yesterday and followed the recipe, doubled for 5 lbs of ribs. The result was incredible. Froze the leftovers to enjoy later. Will be making these often!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Delicious muffins. I ran out of zucchini and used 1 cup each of shredded zucchini and carrots, and substituted 1/2 of the white  flour with whole wheat. Then I followed others' suggestions and replaced 1/2 the fat with yogurt, and cut the white sugar down to 1 cup. The muffins were still plenty moist. Next time, however, I would increase the volume of nuts.",
+      "converted": "1 cup gluten-free flour",
+      "status": "substituted"
+    },
+    {
+      "original": "Awesome simple easy-peasy technique great for fast breakfast recommended for ages:10 to 20 but I think that you could add how much onion and salt n' pepper bc my tastes unhealthy bad from salt",
+      "converted": "Awesome simple easy-peasy technique great for fast breakfast recommended for ages:10 to 20 but I think that you could add how much onion and salt n' pepper bc my tastes unhealthy bad from salt",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Great cookies!! made 2 batches, one with almond extract and one with vanilla...both were great!!!",
+      "converted": "Great cookies!! made 2 batches, one with almond extract and one with vanilla...both were great!!!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"olive oil\"",
+      "converted": "\"olive oil\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I'm a new cook and this turned out really well for me. Thanks for sharing:)",
+      "converted": "I'm a new cook and this turned out really well for me. Thanks for sharing:)",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Great fish with a bit of bite from the cajun seasoning.  I used tilapia, and served over angel hair pasta.  Delightful.",
+      "converted": "gluten-free pasta",
+      "status": "substituted"
+    },
+    {
+      "original": "\"milk\"",
+      "converted": "\"milk\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "c(\"flour tortillas\"",
+      "converted": "gluten-free flour",
+      "status": "substituted"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "The real Aussie version has the biscuits soaked in Rum, but I find Creme de Cacao is much nicer.",
+      "converted": "The real Aussie version has the biscuits soaked in Rum, but I find Creme de Cacao is much nicer.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "After assembling. Cover with whipped cream, roll in crushed almonds and decorate the top with 3 or 4 glaced cherries.",
+      "converted": "After assembling. Cover with whipped cream, roll in crushed almonds and decorate the top with 3 or 4 glaced cherries.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "And most importantly -  to serve. Cut each slice on an angle.",
+      "converted": "And most importantly -  to serve. Cut each slice on an angle.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This was good.  I like to used red, but couldn't find organic, so used white.  Used Recipe Secrets veg. soup mix.  The mayo mix easily makes enough for 3 lbs of potatoes.  I had over 2 1/2 lbs and it was still alot of sauce.  Made with recipe#184304.  Great combo.",
+      "converted": "This was good.  I like to used red, but couldn't find organic, so used white.  Used Recipe Secrets veg. soup mix.  The mayo mix easily makes enough for 3 lbs of potatoes.  I had over 2 1/2 lbs and it was still alot of sauce.  Made with recipe#184304.  Great combo.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Super YUMMY! 10 zillion stars. Easy to do, easy to eat. The hit of our Christmas Eve buffet. They did disappear the quickest! Make these for the Super Bowl or any party, and stand away from the horde as they devour them. Thanks for a real keeper. P",
+      "converted": "Super YUMMY! 10 zillion stars. Easy to do, easy to eat. The hit of our Christmas Eve buffet. They did disappear the quickest! Make these for the Super Bowl or any party, and stand away from the horde as they devour them. Thanks for a real keeper. P",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I added the cool whip when I added the pineapple.  Also threw in some chopped pecans. I had requested this recipe...my grandma used to make it but did not leave behind the recipe when she passed away.  I surprised my mom with it and she was tickled.  Oh...did I mention it is delicious??",
+      "converted": "I added the cool whip when I added the pineapple.  Also threw in some chopped pecans. I had requested this recipe...my grandma used to make it but did not leave behind the recipe when she passed away.  I surprised my mom with it and she was tickled.  Oh...did I mention it is delicious??",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Super good. I used only swiss no feta and they were delish! I'm going to add feta next time I'm sure they will be just as good if not better :)",
+      "converted": "Super good. I used only swiss no feta and they were delish! I'm going to add feta next time I'm sure they will be just as good if not better :)",
+      "status": "gluten_free"
+    },
+    {
+      "original": "not bad at all.",
+      "converted": "not bad at all.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This stuff is amazing. I have an old pizza pan that I was going to throw out because everything sticks to it, but not when you use this stuff.I will be using this from now on. Thanks for the recipe.",
+      "converted": "This stuff is amazing. I have an old pizza pan that I was going to throw out because everything sticks to it, but not when you use this stuff.I will be using this from now on. Thanks for the recipe.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Made this for a family dinner and we loved it. It was something unique and quite tasty. I sub'd 3 cloves fresh minced garlic for the garlic powder. Sauteeing the vegetables in the bacon drippings made the flavor incredible. Will definitely make this again and would be good to serve to dinner guests.",
+      "converted": "Made this for a family dinner and we loved it. It was something unique and quite tasty. I sub'd 3 cloves fresh minced garlic for the garlic powder. Sauteeing the vegetables in the bacon drippings made the flavor incredible. Will definitely make this again and would be good to serve to dinner guests.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"black salt\"",
+      "converted": "\"black salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\")",
+      "converted": "\"salt\")",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This is an excellent recipe. So simple and tasted wonderful! I made it exactly as written and wouldn't change a thing. The spices were perfect. This was the prettiest whole chicken in the crockpot I ever made. My chicken was pulling away from the bones at about 4 1/2 hours (I set it on 6 hour setting on my crockpot.) It was tender, juicy and *Delicious* I used the shredded chicken in my Recipe #257149 which added great flavor. I did nibble on the chicken when shredding and know this would be great as a stand alone! Thanks for sharing Kathy, this recipe will go into my \"Favorites by Zaar\" cookbook!!!  I will definitely make this again. ~V",
+      "converted": "This is an excellent recipe. So simple and tasted wonderful! I made it exactly as written and wouldn't change a thing. The spices were perfect. This was the prettiest whole chicken in the crockpot I ever made. My chicken was pulling away from the bones at about 4 1/2 hours (I set it on 6 hour setting on my crockpot.) It was tender, juicy and *Delicious* I used the shredded chicken in my Recipe #257149 which added great flavor. I did nibble on the chicken when shredding and know this would be great as a stand alone! Thanks for sharing Kathy, this recipe will go into my \"Favorites by Zaar\" cookbook!!!  I will definitely make this again. ~V",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"unbleached flour\"",
+      "converted": "gluten-free flour",
+      "status": "substituted"
+    },
+    {
+      "original": "Hi KITTENCAL;",
+      "converted": "Hi KITTENCAL;",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I had a very big problem deciding how to rate this recipe.  After having the first piece, I couldn't believe that the pie was so good.  So, after having the second piece, it was very apparent that the recipe deserved a minimum of 5 stars.",
+      "converted": "I had a very big problem deciding how to rate this recipe.  After having the first piece, I couldn't believe that the pie was so good.  So, after having the second piece, it was very apparent that the recipe deserved a minimum of 5 stars.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "The pie set beautifully, the crust was not soggy, the apples were slightly crisp, pie was not too sweet and when I flooded it with whipping cream, well what can I say.",
+      "converted": "The pie set beautifully, the crust was not soggy, the apples were slightly crisp, pie was not too sweet and when I flooded it with whipping cream, well what can I say.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "However, I decided to try the pie with a Graham wafer/Vanilla wafer/Pecan mixture.  After lining the deep pie plate with the mixture, I placed it in the freezer for about 1/2 hour to set.",
+      "converted": "However, I decided to try the pie with a Graham wafer/Vanilla wafer/Pecan mixture.  After lining the deep pie plate with the mixture, I placed it in the freezer for about 1/2 hour to set.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Oh yes, I sliced the apples a bit thinner, then sprinkled them with lemon juice, covered the apples and let them sit overnight. The next day, they were so white and had a slight lemony taaste.  I also added 1/4 teaspoon of freshly grated Nutmeg to the mixture.",
+      "converted": "Oh yes, I sliced the apples a bit thinner, then sprinkled them with lemon juice, covered the apples and let them sit overnight. The next day, they were so white and had a slight lemony taaste.  I also added 1/4 teaspoon of freshly grated Nutmeg to the mixture.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Thank you for sharing such a delightful Apple Pie Dessert.",
+      "converted": "Thank you for sharing such a delightful Apple Pie Dessert.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This is definitely a repeat many more time.",
+      "converted": "This is definitely a repeat many more time.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"Uncle Bill\"",
+      "converted": "\"Uncle Bill\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This was a really fantastic salad, with a great combination of sweet and salty flavours, and the crunch of the sunflower seeds with the softness of the cheese and spinach. MMMM. I did realise halfway through making this that I didn't have an apple though, so I subbed a pear.",
+      "converted": "This was a really fantastic salad, with a great combination of sweet and salty flavours, and the crunch of the sunflower seeds with the softness of the cheese and spinach. MMMM. I did realise halfway through making this that I didn't have an apple though, so I subbed a pear.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Great story!  I make this recipe in the crockpot.  Cook it on low all day long, and the sauerkraut is super-tender and tastes delicious!",
+      "converted": "Great story!  I make this recipe in the crockpot.  Cook it on low all day long, and the sauerkraut is super-tender and tastes delicious!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"sugar\"",
+      "converted": "\"sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "They came out very tasty. I also used oranges from our own trees and doubled the orange rind amount. I used half Stevia and half sugar.",
+      "converted": "They came out very tasty. I also used oranges from our own trees and doubled the orange rind amount. I used half Stevia and half sugar.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Wonderful! It tasted very similar to the way my favorite pizzeria makes it. Thank you.",
+      "converted": "Wonderful! It tasted very similar to the way my favorite pizzeria makes it. Thank you.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Love Greek salad! Great flavors and easy to make. Thanks! Made for ZWT#9 2013 by a member of team Hot Stuff! Divalicious! ;)",
+      "converted": "Love Greek salad! Great flavors and easy to make. Thanks! Made for ZWT#9 2013 by a member of team Hot Stuff! Divalicious! ;)",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This is a great way to dress up Ikea meatballs and have a quick weeknight meal.  <br/>My family loves it! <br/>Thanks for posting.",
+      "converted": "This is a great way to dress up Ikea meatballs and have a quick weeknight meal.  <br/>My family loves it! <br/>Thanks for posting.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Cutting back on the Splenda was good advice, but this is still very sweet.  It comes across almost dessert-like.  My bag of cranberries yielded only 3 cups, so I cut the Splenda to 1 cup and fluids in half hoping I'd end up with a thick enough finished product.  I also cut the spices to less than half because it just seemed too apple pie-like, and added a few cranks of freshly ground black pepper.  Overall, this is a definite improvement over the plain water & sugar method and a real treat for the diabetic cranberry lover in the family.  We'll make this again and just keep the sweet additives to a minimum, maybe adding a bit more ginger for kick.",
+      "converted": "Cutting back on the Splenda was good advice, but this is still very sweet.  It comes across almost dessert-like.  My bag of cranberries yielded only 3 cups, so I cut the Splenda to 1 cup and fluids in half hoping I'd end up with a thick enough finished product.  I also cut the spices to less than half because it just seemed too apple pie-like, and added a few cranks of freshly ground black pepper.  Overall, this is a definite improvement over the plain water & sugar method and a real treat for the diabetic cranberry lover in the family.  We'll make this again and just keep the sweet additives to a minimum, maybe adding a bit more ginger for kick.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I love this recipe.  I'm a vegetarian, but I really enjoy making this dish for my friends and family.  It's always a hit!!",
+      "converted": "I love this recipe.  I'm a vegetarian, but I really enjoy making this dish for my friends and family.  It's always a hit!!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Delicious, i made a few mistakes and they still were great.  I forgot the last half hour rising, i was so tired, so they were a little smaller than they would have been. Flavor was excellent though.",
+      "converted": "Delicious, i made a few mistakes and they still were great.  I forgot the last half hour rising, i was so tired, so they were a little smaller than they would have been. Flavor was excellent though.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I did find it easier to proof in 1/4 cup of water with yeast and honey first then add the oil because it took so long to proof, and threw out the first set of water/yeast/honey and just added the extra 1/4 cup water and the oil to it once proofed",
+      "converted": "I did find it easier to proof in 1/4 cup of water with yeast and honey first then add the oil because it took so long to proof, and threw out the first set of water/yeast/honey and just added the extra 1/4 cup water and the oil to it once proofed",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"egg\"",
+      "converted": "\"egg\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "These muffins are great! I feel like they are a cross between a light fluffy scone and a muffin. Just the perfect amount of butter was called for!! I made 6 large muffins. They turned out crispy on the outside and light and fluffy on the inside. Next time I plan to add 2 cups of blueberries but I think other fruits or chocolate chips and nuts would work great with this recipe if you didn't have blueberries!",
+      "converted": "6 cups gluten-free muffin",
+      "status": "substituted"
+    },
+    {
+      "original": "\"instant coffee powder\"",
+      "converted": "\"instant coffee powder\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Such a good drink! I used a little extra lemon juice, because I didn't think there was a strong lemon taste to it! I also added some lemon slices to the mix.",
+      "converted": "Such a good drink! I used a little extra lemon juice, because I didn't think there was a strong lemon taste to it! I also added some lemon slices to the mix.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"eggs\"",
+      "converted": "\"eggs\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"baking powder\"",
+      "converted": "\"baking powder\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This potato salad is great! My husband doesn't like crunchy things in his potato salad, so this is perfect for him! It is so nice and creamy. I did add a touch more Italian dressing. And  I always use Kraft mayo(I buy it in the gallon jars, much cheaper!) Thanks for this recipe!!!",
+      "converted": "This potato salad is great! My husband doesn't like crunchy things in his potato salad, so this is perfect for him! It is so nice and creamy. I did add a touch more Italian dressing. And  I always use Kraft mayo(I buy it in the gallon jars, much cheaper!) Thanks for this recipe!!!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Thank you Soooo much!  What a simple yet Soooo Deeeelicious recipe. Imade this and it's already all gone and there are only 2 of us right now!  Now I'll have to make 2 today and hide one in the freezer (just for me)!!!",
+      "converted": "Thank you Soooo much!  What a simple yet Soooo Deeeelicious recipe. Imade this and it's already all gone and there are only 2 of us right now!  Now I'll have to make 2 today and hide one in the freezer (just for me)!!!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This is a great recipe.  My 3 boys literally gobbled them up.  I was worried that the batter was a little tick and debated adding more milk to thin it out, but I did not.  They turned out really light and airy.  I will definitely make these again!",
+      "converted": "This is a great recipe.  My 3 boys literally gobbled them up.  I was worried that the batter was a little tick and debated adding more milk to thin it out, but I did not.  They turned out really light and airy.  I will definitely make these again!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"olive oil\"",
+      "converted": "\"olive oil\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"baking soda\"",
+      "converted": "\"baking soda\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"sugar\"",
+      "converted": "\"sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"chili powder\")",
+      "converted": "\"chili powder\")",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "These cookies were wonderful.  I added 1t vanilla to the recipe for a little more oomph.  My husband ate them in two sittings!  Thanks!",
+      "converted": "These cookies were wonderful.  I added 1t vanilla to the recipe for a little more oomph.  My husband ate them in two sittings!  Thanks!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"eggs\"",
+      "converted": "\"eggs\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This was a really delicious recipe!",
+      "converted": "This was a really delicious recipe!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Thank you for sharing!!",
+      "converted": "Thank you for sharing!!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I am a somewhat experienced bread maker, but I have not ever made a batter bread before.  This was moist, delicious, and a nice-looking loaf.  I did find this to be a bit crumbly and mine did not rise as high as others have reported (even though I gave it extra time, and it was a warm summer day), but I think it may be the fault of slightly past-its-prime yeast, not this recipe.  We loved the flavor of this bread and it smells incredible while baking.   Thank you for posting this!",
+      "converted": "gluten-free bread",
+      "status": "substituted"
+    },
+    {
+      "original": "Perfect and juicy!  I did recipe just as it says.  They came out great!",
+      "converted": "Perfect and juicy!  I did recipe just as it says.  They came out great!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "We loved this smoothie! I doubled the recipe and used frozen sliced strawberries that I thawed in the refrigerator. There was some juice in the strawberries so I added it in too along with 2 ripe bananas, about 1/2 cup of orange juice and 1 1/2 cups of ice cubes. Wonderful flavor, I think the orange juice makes this smoothie have a very fresh flavor. Thank you so much mersaydees for posting this recipe. Made and reviewed for the Vegetarian/Vegan Forum Recipe Swap #7.",
+      "converted": "We loved this smoothie! I doubled the recipe and used frozen sliced strawberries that I thawed in the refrigerator. There was some juice in the strawberries so I added it in too along with 2 ripe bananas, about 1/2 cup of orange juice and 1 1/2 cups of ice cubes. Wonderful flavor, I think the orange juice makes this smoothie have a very fresh flavor. Thank you so much mersaydees for posting this recipe. Made and reviewed for the Vegetarian/Vegan Forum Recipe Swap #7.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"vanilla\"",
+      "converted": "\"vanilla\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Perfect when you want something light with very clean flavors - this was a perfect lunch for us after all the heavy food of the season we've had the past few days! Yum!",
+      "converted": "Perfect when you want something light with very clean flavors - this was a perfect lunch for us after all the heavy food of the season we've had the past few days! Yum!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "My mom made these for us as kids.  I now make them for my own kids (or at least that is the excuse I use).  I use a melon-baller to get the doughnut hole.  I also use a powder sugar glaze along with chocolate frosting and cinnamon sugar.  A real chidhood memory!",
+      "converted": "My mom made these for us as kids.  I now make them for my own kids (or at least that is the excuse I use).  I use a melon-baller to get the doughnut hole.  I also use a powder sugar glaze along with chocolate frosting and cinnamon sugar.  A real chidhood memory!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "A fantastic summertime dessert for all; as good if not better than my standard cobbler recipe.  Served with whipped cream on the side for the dairy fans at the table.",
+      "converted": "A fantastic summertime dessert for all; as good if not better than my standard cobbler recipe.  Served with whipped cream on the side for the dairy fans at the table.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Wow, this was fantastic! I was skeptical at first because the recipe is so simple, but was surprised at how tasty it is.",
+      "converted": "Wow, this was fantastic! I was skeptical at first because the recipe is so simple, but was surprised at how tasty it is.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"chili powder\"",
+      "converted": "\"chili powder\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "We enjoyed this dish, but I would definitely exclude the sugar next time.  I cut the amount in half and it was still too sweet.  Otherwise we thought it was a really nice dish.  Thanks!",
+      "converted": "We enjoyed this dish, but I would definitely exclude the sugar next time.  I cut the amount in half and it was still too sweet.  Otherwise we thought it was a really nice dish.  Thanks!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Delicious. I'm always looking for new things to do with broccoli, as my son loves it. This recipe was great. Thanks.",
+      "converted": "Delicious. I'm always looking for new things to do with broccoli, as my son loves it. This recipe was great. Thanks.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"eggs\"",
+      "converted": "\"eggs\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "WOW these are great! I baked these earlier today except I made seven instead of twelve because i made them super big. When I took them out of the oven and looked at them I knew they were gonna be great just by looking at them. I don't understand why only one person has rated this recipe so far.It doesn't really matter anyway, my family was ungrateful as usual but then again they secretly praise me amongst themselves.",
+      "converted": "WOW these are great! I baked these earlier today except I made seven instead of twelve because i made them super big. When I took them out of the oven and looked at them I knew they were gonna be great just by looking at them. I don't understand why only one person has rated this recipe so far.It doesn't really matter anyway, my family was ungrateful as usual but then again they secretly praise me amongst themselves.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I'm writing to say thank you for a recipe that I prepare once a month or so. Everyone I serve it too loves it. I use \"snow legs\" in the making  and I don't skimp. I like to add dried dill and a few dashes of cayenne. Delicious.",
+      "converted": "I'm writing to say thank you for a recipe that I prepare once a month or so. Everyone I serve it too loves it. I use \"snow legs\" in the making  and I don't skimp. I like to add dried dill and a few dashes of cayenne. Delicious.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I made this cake as a birthday cake project I volunteered for (my friend's son's BD) & was very happy w/the results. After sifting through recipes by reviews, I decided to go listen to the 30-some happy reviewers.  It was extremely easy to make, rose beautifully, came out of the pan easily & was moist and delicious. What more can a chef ask for?  Thanks for a great recipe MizzNezz :-)",
+      "converted": "I made this cake as a birthday cake project I volunteered for (my friend's son's BD) & was very happy w/the results. After sifting through recipes by reviews, I decided to go listen to the 30-some happy reviewers.  It was extremely easy to make, rose beautifully, came out of the pan easily & was moist and delicious. What more can a chef ask for?  Thanks for a great recipe MizzNezz :-)",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"flour\")",
+      "converted": "{'substitute': 'gluten-free flour', 'ratio': 0.75}",
+      "status": "substituted"
+    },
+    {
+      "original": "YOU'VE GOT A GREAT WAFFLE RECIPE HERE! Made these pretty much as indicated! Used pumpkin puree & toasted pecans for a satisfying breakfast! Even pumped up the main taste by using pumpkin butter, then topped it all with some light corn syrup! VERY, VERY NICE! [Tagged, made & reviewed for one of my partners in the Aus/NZ Recipe Swap #22]",
+      "converted": "YOU'VE GOT A GREAT WAFFLE RECIPE HERE! Made these pretty much as indicated! Used pumpkin puree & toasted pecans for a satisfying breakfast! Even pumped up the main taste by using pumpkin butter, then topped it all with some light corn syrup! VERY, VERY NICE! [Tagged, made & reviewed for one of my partners in the Aus/NZ Recipe Swap #22]",
+      "status": "not_parsed"
+    },
+    {
+      "original": "It was awesome!  I made this for my boyfriend who is a diabetic and he just loved it!   Thanks for the recipe!",
+      "converted": "It was awesome!  I made this for my boyfriend who is a diabetic and he just loved it!   Thanks for the recipe!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "These were good, but needed more of a chocolate flavor.  Next time I make them I will add some cocoa. Thanks for this.",
+      "converted": "These were good, but needed more of a chocolate flavor.  Next time I make them I will add some cocoa. Thanks for this.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "Very good cake!  I like the cinnamon in it though I did add a slight bit more and I also added a 1/4 tsp of chili powder. For the glaze, since I didn't have pecans or bittersweet chocolate, I mixed about a cup of confect. sugar and 4 heaping Tbsp. of cocoa powder, I then added some lime juice, zest and a little milk until I got the consistency I wanted. I also spooned some cajeta over the top of the cake after I was done frosting and some lime zest. Tasted great! Thank you for posting this recipe! Made for ZWT5",
+      "converted": "Very good cake!  I like the cinnamon in it though I did add a slight bit more and I also added a 1/4 tsp of chili powder. For the glaze, since I didn't have pecans or bittersweet chocolate, I mixed about a cup of confect. sugar and 4 heaping Tbsp. of cocoa powder, I then added some lime juice, zest and a little milk until I got the consistency I wanted. I also spooned some cajeta over the top of the cake after I was done frosting and some lime zest. Tasted great! Thank you for posting this recipe! Made for ZWT5",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I just made this recipe and my husband and I loved it! It was so easy too. I didn't have sesame seeds so I substituted crushed peanuts and it worked great. I made a side of Asian noodles and used some of the reduced marinade as a sauce on the noodles. I will definitely be passing this recipe on!",
+      "converted": "I just made this recipe and my husband and I loved it! It was so easy too. I didn't have sesame seeds so I substituted crushed peanuts and it worked great. I made a side of Asian noodles and used some of the reduced marinade as a sauce on the noodles. I will definitely be passing this recipe on!",
+      "status": "gluten_free"
+    },
+    {
+      "original": "c(\"baking powder\"",
+      "converted": "c(\"baking powder\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "I made this for dessert for Easter.  I did use white mint chips but will use the semi-sweet next time.  Great with strawberries and crisp shells.",
+      "converted": "I made this for dessert for Easter.  I did use white mint chips but will use the semi-sweet next time.  Great with strawberries and crisp shells.",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"baking soda\"",
+      "converted": "\"baking soda\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"salt\"",
+      "converted": "\"salt\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "\"sugar\"",
+      "converted": "\"sugar\"",
+      "status": "gluten_free"
+    },
+    {
+      "original": "This tasted delicious, but I had a lot of trouble incorporating the red peppers into the bread - I was really fighting the dough on the board. They wanted to bunch together. I shaped as directed, and you end up with a large, flat loaf. There were some areas where the red peppers \"congregated\". I think it's a bread to eat up pretty fast, as the peppers stay moist. Also, the bread stuck to the sheet, even though it was well oiled.  A little hard to make sandwiches from it - I think I would use this next time as an accompaniment to soup or stew. Also, I am going to try sprinkling a little flour on the peppers, to see if that helps them incorporate a little more easily into the dough. Ate half the loaf before I knew it!",
+      "converted": "gluten-free flour",
+      "status": "substituted"
+    },
+    {
+      "original": "I agree with you, Heather. This cake is really moist and very tasty too. I've made it many times till date and it gets over within minutes :)",
+      "converted": "I agree with you, Heather. This cake is really moist and very tasty too. I've made it many times till date and it gets over within minutes :)",
+      "status": "gluten_free"
+    }
+  ]
+}

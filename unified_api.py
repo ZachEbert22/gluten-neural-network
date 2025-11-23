@@ -17,6 +17,8 @@ from bs4 import BeautifulSoup
 import re
 import traceback
 import json
+from pathlib import Path
+import time
 # ---------------------------------------------------------------------
 # Safe importer
 # ---------------------------------------------------------------------
@@ -217,8 +219,21 @@ def load_models():
 
 
 # ---------------------------------------------------------------------
+# BACKEND LOGGING FOR STATISTICS PIPELINE
+# ---------------------------------------------------------------------
+LOG_PATH = Path("data/prediction_log.jsonl")
+
+def log_prediction(entry: dict):
+    """Append one JSON line to backend log for statistics pipeline."""
+    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(LOG_PATH, "a") as f:
+        f.write(json.dumps(entry) + "\n")
+
+
+# ---------------------------------------------------------------------
 # Gluten check
 # ---------------------------------------------------------------------
+
 def contains_gluten(ingredient_name: str) -> bool:
     name = (ingredient_name or "").lower()
     for g in Registry.gluten_list or []:
@@ -316,6 +331,16 @@ def process(req: ProcessRequest):
         rewritten = Registry.share_rewriter.rewrite(req.instructions or "", subs_output)
     except Exception:
         rewritten = req.instructions or ""
+
+    # 5) Log backend data for statistics pipeline
+    log_prediction({
+        "timestamp": time.time(),
+        "raw_lines": filtered,
+        "parsed": parsed_output,
+        "substitutions": subs_output,
+        "rewritten": rewritten
+    })
+
 
     return {"parsed": parsed_output, "substitutions": subs_output, "rewritten": rewritten}
 
