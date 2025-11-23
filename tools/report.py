@@ -61,8 +61,8 @@ plt.close()
 # 2. MODEL STATISTICS
 # ------------------------------------------------------
 TOKENIZER_CANDIDATES = [
-    "models/ingredient_classifier",
-    "models/ingredient_classifier/"
+    "../models/ingredient_classifier",
+    "../models/ingredient_classifier/"
 ]
 
 tokenizer_path = None
@@ -80,7 +80,7 @@ vocab_size = len(tokenizer.get_vocab())
 print("\n===== MODEL STATISTICS =====\n")
 print(f"Vocabulary size: {vocab_size}")
 
-MODEL_DIR = "models/ingredient_classifier/"
+MODEL_DIR = "../models/ingredient_classifier/"
 model_size_bytes = sum(
     os.path.getsize(os.path.join(MODEL_DIR, f)) 
     for f in os.listdir(MODEL_DIR)

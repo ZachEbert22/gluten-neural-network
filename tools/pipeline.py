@@ -1,7 +1,7 @@
 # statistics_pipeline.py
 import time
 import json
-from models.ingredient_classifier.predict import predict
+from ..models.ingredient_classifier.predict import predict
 
 INGREDIENT_FILE = "../data/ingredients.json"
 

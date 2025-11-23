@@ -14,9 +14,14 @@ NORMALIZATION_OVERRIDES = {
     "self rising flour": "flour",
     "self-raising flour": "flour",
 
-    "wholemeal flour": "flour",
-    "whole meal flour": "flour",
-    "whole wheat meal flour": "flour",
+    #"all-purpose": "flour",
+    #"all purpose": "flour",
+    #"white all-purpose": "flour",
+    #"white ap": "flour",
+
+    "wholemeal flour": "wholemeal flour",
+    "whole meal flour": "wholemeal flour",
+    "whole wheat meal flour": "wholemeal flour",
 
     "bread crumb": "bread-crumb",
     "bread-crumb": "bread-crumb",
