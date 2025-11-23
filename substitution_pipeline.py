@@ -65,61 +65,69 @@ class SubstitutionEngine:
         return (qty + (" " + unit if unit else "")).strip(), ingredient
 
     def substitute(self, line):
-        qty_unit, ingredient = self.parse_line(line)
+        """
+        Returns: (new_line, changed_flag)
+        Robust pipeline:
+         - parse + normalize
+         - exact match
+         - substring rule-fallback on both normalized ingredient and the raw line
+         - semantic embedder fallback (existing)
+         - GISMo fallback (existing)
+        """
+        qty, ingredient = self.parse_line(line)
+
         if ingredient is None:
             return line, False
 
-        # Exact match (map keys are normalized)
+        # 1) Exact match (fast)
         if ingredient in self.map:
-            entry = self.map[ingredient]
-            sub_name = entry.get("substitute") if isinstance(entry, dict) else entry
-            ratio = float(entry.get("ratio", 1.0)) if isinstance(entry, dict) else 1.0
-            # format quantity adjust if numeric
-            try:
-                qnum = float(qty_unit.split()[0]) if qty_unit and re.match(r'^\d+(\.\d+)?$', qty_unit.split()[0]) else None
-            except Exception:
-                qnum = None
-            if qnum is not None:
-                new_q = round(qnum * ratio, 2)
-                formatted = f"{new_q} {' '.join(qty_unit.split()[1:])} {sub_name}".strip()
-            else:
-                formatted = f"{qty_unit} {sub_name}".strip()
-            return formatted, True
+            return f"{qty} {self.map[ingredient]}".strip(), True
 
-        # Semantic fallback (ensure device alignment)
+        # 2) Rule/sub-string fallback (robust safety-net)
+        # Check normalized ingredient tokens AND the raw original line (lowercased)
+        raw_lower = line.lower()
+        # Try: any substitution key appears in ingredient OR raw line
+        for gkey, info in self.map.items():
+            # compare normalized keys and also check substrings in original text
+            if (gkey in ingredient) or (gkey in raw_lower) or (ingredient in gkey):
+                # use ratio/substitute if available; info may be dict or string
+                if isinstance(info, dict):
+                    sub = info.get("substitute", None) or info.get("sub", None) or str(info)
+                else:
+                    sub = info
+                return f"{qty} {sub}".strip(), True
+
+        # 3) Semantic fallback (BERT) among keys
         with torch.no_grad():
-            v = self.embedder.embed(ingredient)  # single vector (1,dim) on embedder.device
-            # move key_vectors to same device as v
-            key_vecs = self.key_vectors.to(v.device)
-            sims = torch.nn.functional.cosine_similarity(v, key_vecs, dim=1)
-            if sims.numel() == 0:
-                return line, False
-            idx = int(torch.argmax(sims).item())
-            score = float(sims[idx].item())
+            v = self.embedder.embed(ingredient)  # shape (1, dim) or (dim,)
+            # ensure vector on same device as self.key_vectors
+            # self.key_vectors is likely on CPU (from embed_texts), move v to CPU
+            if v.device != self.key_vectors.device:
+                v_cpu = v.to(self.key_vectors.device)
+            else:
+                v_cpu = v
+            sims = torch.nn.functional.cosine_similarity(v_cpu, self.key_vectors, dim=-1)
+            idx = torch.argmax(sims).item()
             best_key = self.keys[idx]
+            score = sims[idx].item()
 
-        # If similarity low, try GISMo if available
-        if score < 0.85 and self.gismo is not None:
+        # If semantic score strong enough, accept
+        if score >= 0.85:
+            sub = self.map[best_key] if isinstance(self.map[best_key], str) else self.map[best_key].get("substitute", self.map[best_key])
+            return f"{qty} {sub}".strip(), True
+
+        # 4) GISMo fallback (if available)
+        if hasattr(self, "gismo") and self.gismo is not None:
             try:
                 cand, gscore = self.gismo.best_substitute(ingredient)
+                if cand and gscore >= 0.55:
+                    sub = self.map.get(cand, cand)
+                    return f"{qty} {sub}".strip(), True
             except Exception:
-                cand, gscore = None, 0.0
-            if cand and gscore >= 0.6:
-                sub_info = self.map.get(cand, {})
-                sub_name = sub_info.get("substitute") if isinstance(sub_info, dict) else sub_info
-                ratio = float(sub_info.get("ratio", 1.0)) if isinstance(sub_info, dict) else 1.0
-                # format
-                formatted = f"{qty_unit} {sub_name}".strip()
-                return formatted, True
-            return line, False
+                pass
 
-        # Use best_key
-        sub_info = self.map.get(best_key, {})
-        sub_name = sub_info.get("substitute") if isinstance(sub_info, dict) else sub_info
-        ratio = float(sub_info.get("ratio", 1.0)) if isinstance(sub_info, dict) else 1.0
-        formatted = f"{qty_unit} {sub_name}".strip()
-        return formatted, True
-
+        # nothing found
+        return line, False
 
 def load_substitutions():
     """

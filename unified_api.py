@@ -291,6 +291,7 @@ def process(req: ProcessRequest):
             subs_output.append({"original": l, "converted": l, "status": "gluten_free"})
             continue
         try:
+
             conv, changed = Registry.substitution_engine.substitute(l)
         except Exception:
             conv, changed = l, False
