@@ -1,0 +1,3 @@
+conda install pytorch torchvision torchaudio cudatoolkit=11.7 -c pytorch  # for GPU support
+pip install torch datasets scikit-learn beautifulsoup4 requests transformers fastapi uvicorn streamlit pandas seaborn
+
