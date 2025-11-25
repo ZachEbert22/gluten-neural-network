@@ -18,8 +18,6 @@ This project provides a complete AI pipeline that:
 6. **Rewrites the recipe fluently** using a SHARE-inspired rewriting model
 7. **Outputs the final cleaned, gluten-free ingredient list**
 
--- 
-
 Includes:
 - **Unified backend** (FastAPI)
 - **Frontend UI** (Streamlit)
@@ -155,8 +153,6 @@ Implements the gluten substitution logic.
 **Main Class:**  
 `SubstitutionEngine`
 
---
-
 ## Data Directory
 
 ### **`data/ingredient_classifier/`**
@@ -183,8 +179,6 @@ Backend logging file used by tools to generate:
 - confusion matrices
 - accuracy stats
 
--- 
-
 ## Documentation (docs/)
 
 ### **`AI-Guided-Gluten-Free-Recipe-Transformation.docx`**
@@ -204,8 +198,6 @@ Exact versions tested on GPU and CPU systems.
 
 ### **`PowerPoint.docx'**
 Content that will go Into the Poster and Powerpoint (Code Demo)
-
--- 
 
 ## Models (models/)
 
@@ -250,8 +242,6 @@ Purpose:
 - Rewrites for naturalness and readability  
 
 Used as the *final step* of the pipeline.
-
---
 
 ## Utilities (utils/)
 
@@ -307,8 +297,6 @@ Some functions still used indirectly.
 ### **`utils/train_utils.py`**
 Training helper functions used by the legacy MLP model.
 
---
-
 ## Tools (tools/)
 
 ### **`backend.py`**
@@ -342,9 +330,6 @@ Used for debugging user environments.
 
 ### **`tools/reports/`**
 Where graphs are output (PNG, PDF, reports).
-
---
-
 
 # Recommended Environment Setup (Conda)
 
