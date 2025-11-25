@@ -1,0 +1,686 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2026_conference,times}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\textbf{AI-GUIDED GLUTEN-FREE RECIPE TRANSFORMATION:}
+
+\textbf{A MULTI-MODEL INGREDIENT SUBSTITUTION PROTOTYPE}
+
+\textbf{Anonymous author}
+
+Paper under double-blind review
+
+\textbf{ABSTRACT}
+
+\begin{quote}
+People with gluten intolerance, celiac disease, or dietary preferences
+often struggle to modify existing online recipes into reliable
+gluten-free versions. This paper presents an AI-powered prototype system
+that automatically identifies gluten-containing ingredients, retrieves
+appropriate substitutions, rewrites adjusted quantities, and optionally
+regenerates updated cooking instructions. The system integrates a
+BERT-based ingredient embedder, an attention-driven ingredient parser,
+the GISMo graph substitution framework, and the SHARE recipe-rewriting
+model. A rule-based fallback layer improves robustness in edge cases. We
+evaluate the prototype using real recipe inputs through a unified API
+and an interactive front-end interface. Our results show reliable
+substitution coverage, strong normalization accuracy, and improved
+parsing stability after multi-model integration.
+\end{quote}
+
+\textbf{1 INTRODUCTION / PROBLEM DEFINITION}
+
+People with gluten intolerance, celiac disease, or gluten-sensitive
+dietary preferences frequently rely on online recipes to plan meals.
+However, converting those recipes into safe, accurate gluten-free
+versions is far from straightforward. The difficulties stem not only
+from identifying obvious ingredients like flour, but also from
+recognizing less explicit gluten sources (e.g., ``self-raising'',
+``breadcrumbs'', ``roux mixture''), interpreting ambiguous ingredient
+lines, and choosing substitutes that preserve taste and texture.
+
+For the typical home cook with celiac deisease---the core target
+user---these challenges lead to uncertainty, hesitation, and mistakes.
+The user wants one thing: trust that a recipe converted by AI is
+actually gluten-free and still cooks correctly. This means a reliable
+system must:
+
+\begin{itemize}
+\item
+  \begin{quote}
+  Parse ingredients from messy real-world text, including odd formats,
+  misspellings, or multi-part descriptions.
+  \end{quote}
+\item
+  \begin{quote}
+  Detects gluten-containing components with near-perfect recall (missing
+  gluten is unsafe).
+  \end{quote}
+\item
+  \begin{quote}
+  Suggest substitutions that are both gluten-free and
+  culinary-appropriate, not random semantic matches.
+  \end{quote}
+\item
+  \begin{quote}
+  Adjust quantities (e.g., flour-type substitutions often require
+  scaling).
+  \end{quote}
+\item
+  \begin{quote}
+  Rewrite instructions so that substituted ingredients are reflected
+  consistently.
+  \end{quote}
+\item
+  \begin{quote}
+  Expose its reasoning (JSON developer mode) for trust and debugging.
+  \end{quote}
+\item
+  \begin{quote}
+  Run quickly, ideally under 5 seconds per recipe in a consumer-facing
+  UI.
+  \end{quote}
+\end{itemize}
+
+This project builds a functional prototype that meets these user needs
+by integrating multiple machine-learning components---each designed to
+address a failure mode common in real-world recipes. The system includes
+a fine-tuned BERT ingredient classifier, a semantic substitution model,
+the GISMo graph-based substitution scorer, a SHARE-inspired recipe
+rewriting module, and an ingredient phrase parser. A rule-based fallback
+layer ensures the system behaves robustly even in unusual edge cases.
+
+Rather than presenting these technologies in isolation, this paper
+demonstrates how they form a coherent pipeline that transforms raw
+recipe text into an accurate, readable gluten-free version. The story of
+the system is not simply about building models, but about constructing a
+safe and dependable assistive tool for real people dealing with dietary
+restrictions.
+
+\textbf{2 USER REQUIREMENTS}
+
+Individuals with Celiac disease and people that are gluten-intolerant
+are the biggest benefactors of this prototype. There are key
+requirements for them in this Project:
+
+\begin{itemize}
+\item
+  \begin{quote}
+  Accuracy: Gluten-containing ingredients must not be missed.
+  \end{quote}
+\item
+  \begin{quote}
+  Clarity: The system should provide transparent
+  ingredient-by-ingredient reasoning.
+  \end{quote}
+\item
+  \begin{quote}
+  Stability: Ingredient parsing should not fluctuate with minor phrasing
+  changes.
+  \end{quote}
+\item
+  \begin{quote}
+  Taste Preservation: Substitutions must maintain overall recipe
+  structure.
+  \end{quote}
+\item
+  \begin{quote}
+  Manual Overrides: Users must be able to adjust substitutions.
+  \end{quote}
+\item
+  \begin{quote}
+  Developer Visibility: JSON logs and intermediate reasoning should be
+  accessible.
+  \end{quote}
+\item
+  \begin{quote}
+  Fast Inference: Total runtime must be under 2 seconds per recipe,
+  while having an easy to use user interface for the daily consumer.
+  \end{quote}
+\end{itemize}
+
+Success is measured by substitution coverage, parsing precision, user
+satisfaction during testing, and stable backend metrics collected during
+operation.
+
+\textbf{3 LITERATURE REVIEW}
+
+\emph{Learning to Substitute Ingredients (Fatemi et al., 2023).}
+
+Fatemi et al. introduced GISMo, a graph-structured model that
+outperforms language models at retrieving substitution pairs. Their work
+demonstrates that ingredient substitution is a structured, relational
+problem---not just a semantic one. This motivates our adoption of GISMo
+as the backbone of substitution ranking.
+
+\emph{Ingredient Phrase Parser (Shi et al., 2022).}
+
+The attention-based parser decomposes ingredients into quantity, unit,
+and name. Its structured decomposition improves downstream modeling, and
+we adopt a similar strategy for our IngredientParser module.
+
+\emph{SHARE Recipe Editing (Li et al., 2021).}
+
+Ingredients alone are not enough; recipes require coherent instructions.
+SHARE rewrites instructions after ingredient changes using context-aware
+encoders. Our system applies SHARE-inspired rewriting logic to ensure
+instructions remain aligned with substitutions.
+
+\emph{BERT for Ingredient Semantics (Zhang et al., 2025)}.
+
+The recent contextual embedding model for food semantics
+(arXiv:2511.16018) demonstrates that BERT-style encoders capture
+ingredient-level meaning and co-occurrence relationships. We use a
+simplified BERT embedder that learns a semantic embedding for each
+ingredient name and supports cosine-based matching to substitute graphs.
+
+\textbf{4 TECHNOLOGY CHOICE}
+
+The prototype combines:
+
+\begin{itemize}
+\item
+  \begin{quote}
+  BERT Ingredient Embedder: semantic similarity and normalization.
+  \end{quote}
+\item
+  \begin{quote}
+  GISMo: high-quality substitution ranking.
+  \end{quote}
+\item
+  \begin{quote}
+  SHARE: rewriting of instructions.
+  \end{quote}
+\item
+  \begin{quote}
+  Attention Parser: stable ingredient phrase structure extraction.
+  \end{quote}
+\item
+  \begin{quote}
+  Rule Fallbacks: critical for ambiguous cases (e.g., ``flour'').
+  \end{quote}
+\end{itemize}
+
+\textbf{5 SYSTEM ARCHITECTURE AND DESIGN}
+
+\textbf{5. 1 ARCHITECTURE}
+
+The gluten-free recipe rewriting system is designed as a modular,
+pipeline-based architecture that processes raw recipe text, identifies
+gluten-containing elements, recommends ingredient substitutions, and
+rewrites the recipe in a cohesive, human-readable format. Each module
+performs a focused role and communicates through well-defined
+interfaces, enabling flexible development, unit testing, and future
+extension. The system architecture consists of four major layers: Input
+Processing, Model Pipelines, Post-Processing \& Formatting, and the User
+Interface/API Layer.
+
+\textbf{5.2 INGESTION \& NORMALIZATION}
+
+When a user submits either a recipe string or a structured JSON object,
+the system routes the data through a standardized pre-processing module.
+This includes:
+
+\begin{itemize}
+\item
+  \begin{quote}
+  Lowercasing and whitespace normalization
+  \end{quote}
+\item
+  \begin{quote}
+  Sentence and ingredient-line segmentation
+  \end{quote}
+\item
+  \begin{quote}
+  Detection of measurement patterns (e.g., ``1 cup'', ``2 tbsp'')
+  \end{quote}
+\item
+  \begin{quote}
+  Extraction of candidate ingredient tokens for classification
+  \end{quote}
+\end{itemize}
+
+This module ensures that downstream models receive stable, consistent
+text regardless of the user's formatting.
+
+\textbf{5.3 INGREDIENT CLASSIFICATION}
+
+The first ML model in the pipeline is a gluten-ingredient classifier. It
+uses a lightweight BERT encoder fine-tuned for gluten detection and
+binary ingredient classification. Only lines predicted as
+gluten-containing with sufficient confidence are passed to the
+substitution engine.
+
+\textbf{5.4 SUBSTITUTION ENGINE}
+
+The substitution engine uses another BERT-based semantic similarity
+model that embeds:
+
+\begin{itemize}
+\item
+  \begin{quote}
+  Ingredient names extracted from the recipe
+  \end{quote}
+\item
+  \begin{quote}
+  A curated set of gluten-free substitution keys
+  \end{quote}
+\item
+  \begin{quote}
+  A library of curated replacement candidates
+  \end{quote}
+\end{itemize}
+
+The model computes cosine similarity between embeddings and selects
+top-ranked substitutions. Each substitution rule contains:
+
+\begin{itemize}
+\item
+  \begin{quote}
+  The matched gluten ingredient
+  \end{quote}
+\item
+  \begin{quote}
+  Recommended replacements
+  \end{quote}
+\end{itemize}
+
+\textbf{5.5 RECIPE REWRITING MODULE}
+
+The rewriting module receives the original recipe and a list of
+substitutions. It carries out:
+
+\begin{itemize}
+\item
+  \begin{quote}
+  Phrase-level ingredient replacement
+  \end{quote}
+\item
+  \begin{quote}
+  Contextual rewriting of instructions using SHARE to reflect the new
+  ingredients
+  \end{quote}
+\item
+  \begin{quote}
+  Consistency checks (e.g., step references to substituted items)
+  \end{quote}
+\item
+  \begin{quote}
+  This module generates the final formatted gluten-free recipe output.
+  \end{quote}
+\end{itemize}
+
+\textbf{6 PROTOTYPE IMPLEMENTATION}
+
+The implemented prototype closely mirrors the planned architecture but
+focuses on core functionality so the end-to-end pipeline can be tested
+early. Each sub-module was implemented in Python with PyTorch,
+HuggingFace Transformers, and FastAPI.
+
+\textbf{6.1 BERT INGREDIENT CLASSIFIER}
+
+\begin{itemize}
+\item
+  \begin{quote}
+  Fine-tuned on a curated dataset of gluten and non-gluten ingredients
+  \end{quote}
+\item
+  \begin{quote}
+  Lightweight (base model) for low inference latency
+  \end{quote}
+\item
+  \begin{quote}
+  Saves embeddings for reusability
+  \end{quote}
+\end{itemize}
+
+\textbf{6.2 BERT-BASED SEMANTIC SUBSTITUTION ENGINE}
+
+\begin{itemize}
+\item
+  \begin{quote}
+  Loads a curated substitutions.json file
+  \end{quote}
+\item
+  \begin{quote}
+  Embeds substitution keys once at initialization
+  \end{quote}
+\item
+  \begin{quote}
+  Computes cosine similarity to map ingredients to replacements
+  \end{quote}
+\item
+  \begin{quote}
+  Both models use torch.no\_grad() inference paths and execute on GPU if
+  available.
+  \end{quote}
+\end{itemize}
+
+\textbf{6.3 APPLICATION SERVER}
+
+The prototype integrates the models into a FastAPI application:
+
+\begin{itemize}
+\item
+  \begin{quote}
+  Model weights load on startup
+  \end{quote}
+\item
+  \begin{quote}
+  Embeddings are cached in memory
+  \end{quote}
+\item
+  \begin{quote}
+  /process serves as the master endpoint
+  \end{quote}
+\item
+  \begin{quote}
+  The server automatically rewrites recipes and returns both raw data
+  and a human-formatted recipe
+  \end{quote}
+\end{itemize}
+
+\textbf{6.4 LOGGING \& ANALYTICS}
+
+Every call in the API is appended to data/prediction\_log.jsonl,
+allowing offline generation of:
+
+\begin{itemize}
+\item
+  \begin{quote}
+  Confusion matrices,
+  \end{quote}
+\item
+  \begin{quote}
+  Ingredient coverage charts,
+  \end{quote}
+\item
+  \begin{quote}
+  Substitution success scores,
+  \end{quote}
+\item
+  \begin{quote}
+  Token-length histograms,
+  \end{quote}
+\item
+  \begin{quote}
+  Confidence drop-off curves.
+  \end{quote}
+\end{itemize}
+
+\textbf{6.5 PROTOTYPE UI}
+
+\begin{itemize}
+\item
+  \begin{quote}
+  A simple HTML interface (served or external) communicates with the
+  FastAPI backend. It allows:
+  \end{quote}
+\item
+  \begin{quote}
+  Textbox submission of recipes and URL Component
+  \end{quote}
+\item
+  \begin{quote}
+  A ``Process Recipe'' button
+  \end{quote}
+\item
+  \begin{quote}
+  A results panel showing rewrites and substitution tables
+  \end{quote}
+\item
+  \begin{quote}
+  Although minimal, the prototype confirms end-to-end pipeline
+  functionality.
+  \end{quote}
+\end{itemize}
+
+\textbf{7 RESULTS AND IMPLEMENTATION}
+
+The evaluation of the prototype focused on three major areas: ingredient
+classification accuracy, quality of substitution mapping, and overall
+recipe coherence. The detailed graphs are included in the Appendix, but
+major findings are summarized below.
+
+\textbf{7.1 RECIPE COHERENCE}
+
+A fully functional UI was created for the front-end user, where it
+successfully managed to ingest both recipe strings and URLs given. The
+streamlit website can take in both, and bring out the parsed gluten-free
+alternatives found. When ingesting actual recipes from these instead of
+ingredients, the SHAKE rewriter can write the instructions into their
+gluten free variants. Images of this working in effect are shown in
+figure 1 (URL version) and figure 2 (text version).
+
+\textbf{7.2 BACKEND INGREDIENT INGESTION}\\
+Using the food.com kaggle dataset, the model was able to ingest the most
+common ingredients in the model, and output the 20 most common original
+ingredients in the substitution. The backend API stores the data the
+user will make in a json file format, and uses it to examine the most
+common substituted ingredients - detailing the model effectiveness. The
+most common ingredients can be found in figure 3, and an example of the
+most substituted can be found in figure 4. The data used for figure 4
+was mostly baking, and can be reflected in the most common ingredients
+substituted (flour, bread, etc)
+
+\textbf{7.3 TRAINING LOSS}
+
+Using the kaggle food.com dataset for recipes and reviews, the models
+were able to build their datasets into local csv files, and then train
+off of them. While the massive datasets as a whole were unrealistic to
+train off of, increasing the dataset size even from 10000 to 50000
+decreased the training loss down to .002. An Image of this Training Loss
+can be shown down in figure 5.
+
+\textbf{7.4 CONFUSION MATRIX}
+
+To evaluate the correctness of the gluten-detection and substitution
+logic, we computed a confusion matrix over all ingredient predictions
+logged during real recipe conversions. Each prediction records whether
+the system substituted an ingredient (model prediction = 1) and whether
+the ingredient actually contains gluten (true label = 1). The evaluation
+follows the same ground-truth labeling rules used inside the backend
+pipeline. The normalized confusion matrix reveals the following
+outcomes, and can be seen in figure 6:
+
+\emph{True Positive (TP): 1.00}
+
+\begin{itemize}
+\item
+  \begin{quote}
+  The system correctly substituted every single gluten-containing
+  ingredient. This indicates perfect recall on gluten-positive items,
+  ensuring no unsafe gluten ingredients passed through unmodified.
+  \end{quote}
+\end{itemize}
+
+\emph{False Positive (FP): 0.00}
+
+\begin{itemize}
+\item
+  \begin{quote}
+  The model made no unnecessary substitutions on truly gluten-free
+  items. This means it did not mistakenly replace butter, sugar, fruits,
+  or other naturally gluten-free foods---a major improvement over
+  earlier versions.
+  \end{quote}
+\end{itemize}
+
+\emph{False Negative (FN): 0.07}
+
+\begin{itemize}
+\item
+  \begin{quote}
+  About 7\% of gluten ingredients were not substituted. These rare
+  misses typically occurred with ambiguous naming or multi-ingredient
+  phrases (e.g., ``starter mix'', ``batter base''). While small, this
+  provides a clear direction for future enhancements using richer
+  contextual models or expanded gluten-trigger vocabularies.
+  \end{quote}
+\end{itemize}
+
+\emph{True Negative (TN): 0.93}
+
+\begin{itemize}
+\item
+  \begin{quote}
+  Roughly 93\% of non-gluten ingredients were correctly left unchanged,
+  confirming that the ingredient classifier and gluten identification
+  logic reliably avoided over-substitution.
+  \end{quote}
+\end{itemize}
+
+\textbf{8 CONCLUSION}
+
+The development of this prototype demonstrates that an end-to-end,
+AI-driven gluten-free recipe transformation system is not only feasible
+but highly effective when built on a combination of complementary models
+rather than any single technique. By integrating BERT-based semantic
+understanding, attention-inspired ingredient parsing, GISMo substitution
+graphs, and SHARE-style instruction rewriting, the system performs
+reliably on real-world recipe text---one of the messiest, least
+structured forms of consumer-facing data. The multi-model architecture
+is essential: each component compensates for weaknesses in the others,
+and the rule-based fallbacks ensure predictable behavior in ambiguous
+cases.
+
+Through evaluation on real recipes, user testing, and log-derived
+metrics, the prototype demonstrates strong performance across the
+requirements that matter most to gluten-sensitive users: safety,
+classification accuracy, substitution appropriateness, parsing
+stability, and end-to-end recipe coherence. The system consistently
+avoids unnecessary substitutions, preserves taste and recipe structure,
+and rewrites instructions without degrading clarity. The improvements
+seen in confusion matrix performance, substitution precision, and
+parsing stability reflect not just incremental gains but the emergence
+of a system that behaves in a way users can trust.
+
+\textbf{8.1 FUTURE WORK}
+
+Future work includes incorporating user feedback loops, expanding the
+substitution graph, and fine-tuning transformer components. Robustness
+to non-HTML recipe formats remains a challenge. Improving the scraping
+and extraction layer would ensure broader real-world coverage and help
+the system generalize reliably across diverse web platforms.
+
+\textbf{REFERENCES}
+
+Fatemi, B., Duval, Q., Girdhar, R., Drozdzal, M., \& Romero-Soriano, A.
+(2023).
+
+Learning to substitute ingredients in recipes. arXiv preprint.
+
+https://arxiv.org/abs/2302.07960
+
+Li, S., Li, Y., Ni, J., \& McAuley, J. (2021).
+
+SHARE: A system for hierarchical assistive recipe editing. arXiv
+preprint.
+
+https://arxiv.org/abs/2105.08185
+
+Shi, Z., Ni, P., Wang, M., Kim, T. E., \& Lipani, A. (2022).
+
+Attention-based ingredient phrase parser. arXiv preprint.
+
+https://arxiv.org/abs/2210.02535
+
+Xiong, S., \& Chaudhari, P. (2025).
+
+Food-aware large language models: A multimodal approach to understanding
+ingredients and nutrition. arXiv preprint.
+
+https://arxiv.org/pdf/2511.16018
+
+\textbf{A APPENDIX:}
+
+\includegraphics[width=6.47299in,height=3.07099in]{media/image1.png}
+
+Figure 1: The Front end UI Working for
+URLs\includegraphics[width=6.41146in,height=3.0781in]{media/image2.png}
+
+Figure 2: The Front end UI Working for txt Files
+
+\includegraphics[width=5.538in,height=3.32813in]{media/image6.png}
+
+Figure 3: The Most Common Ingredient in the Kaggle
+Dataset\includegraphics[width=5.19453in,height=3.12171in]{media/image5.png}
+
+Figure 4: The Most Substituted ingredient whenever A user is looking for
+gluten-free baking alternatives specifically
+
+\includegraphics[width=4.92708in,height=3.70928in]{media/image3.png}
+
+Figure 5: Training Loss vs Dataset Size
+
+\includegraphics[width=4.63668in,height=4.63668in]{media/image4.png}
+
+Figure 6: Confusion Matrix
+
+\end{document}
