@@ -28,43 +28,43 @@ Includes:
 # Locations
 
 root/
-    build_ingredient_dataset.py
-    frontend.py
-    mlp_model.py
-    substitution_pipeline.py
-    train_ingredient_classifier.py
-    unfied_api.py
+    - build_ingredient_dataset.py
+    - frontend.py
+    - mlp_model.py
+    - substitution_pipeline.py
+    - train_ingredient_classifier.py
+    - unfied_api.py
 
 data/
-    ingredients.json
-    substitutions.json
-    ingredient_dataset/          <- auto-created
-    ingredient_classifier/       <- auto-created
+    - ingredients.json
+    - substitutions.json
+    - ingredient_dataset/          <- auto-created
+    - ingredient_classifier/       <- auto-created
 
 models/
-    bert_embedder.py
-    food_ner.py
-    share_rewriter.py
-    gluten_model.py              <- older model
-    ingredient_classifier/       <- config, tokenizer, vocab, weights
+    - bert_embedder.py
+    - food_ner.py
+    - share_rewriter.py
+    - gluten_model.py              <- older model
+    - ingredient_classifier/       <- config, tokenizer, vocab, weights
 
 utils/
-    ingredient_parser.py
-    gismo.py
-    normalization.py
-    model_loader.py
-    gluten_check.py
-    parser.py
-    substitution.py
+    - ingredient_parser.py
+    - gismo.py
+    - normalization.py
+    - model_loader.py
+    - gluten_check.py
+    - parser.py
+    - substitution.py
 
 tools/
-    backend.py      <- creates training graphs
-    core.py
-    confusion_matrix.py
-    models.py
-    datasets.py
-    reports/        <- output
-    system_info.py
+    - backend.py      <- creates training graphs
+    - core.py
+    - confusion_matrix.py
+    - models.py
+    - datasets.py
+    - reports/        <- output
+    - system_info.py
 
 # Each Script Description 
 
@@ -335,9 +335,8 @@ Where graphs are output (PNG, PDF, reports).
 
 Conda is strongly recommended for this project.
 
-```bash
-conda create -n gluten python=3.10
-conda activate gluten
+`conda create -n gluten python=3.10`
+`conda activate gluten`
 
 ## Install Dependencies
 
@@ -368,10 +367,10 @@ Major libraries used:
 
 python build_ingredient_dataset.py --max-pos 50000 --max-neg 50000
 
-    datasize:
+    - datasize:
         the datasize is 50000 in the example: Would Recommend between 20000 and 50000 For optional Training Loss
         ex: python build_ingredient_dataset.py --max-pos 50000 --max-neg 50000
-    generates: 
+    - generates: 
         data/ingredient_dataset
          data/ingredient_classifier/ (train/test splits for BERT)
 
