@@ -3,6 +3,23 @@ An end-to-end AI system that converts any recipe — URL or text — into a full
 Built using ingredient parsing, BERT classification, semantic substitution, GISMo graph reasoning, and a unified FastAPI + Streamlit interface.
 
 # Overview
+    - Everything was written by me
+    
+## Dependency
+    - pip install -r docs/requirements.txt
+
+## How to Run
+    - python build_ingredient_dataset.py --max-pos 50000 --max-neg 50000
+    - python3 train_ingredient_classifier.py
+    - python -m uvicorn unified_api:app --reload --port 8000
+    - streamlit run frontend.py
+
+## Test Cases
+    - https://www.loveandlemons.com/brownies-recipe/
+    - 2.75 cups of all-purpose flour
+
+
+# Introduction
 
 This project provides a complete AI pipeline that:
 
@@ -335,8 +352,8 @@ Where graphs are output (PNG, PDF, reports).
 
 Conda is strongly recommended for this project.
 
-`conda create -n gluten python=3.10`
-`conda activate gluten`
+- `conda create -n gluten python=3.10`
+- `conda activate gluten`
 
 ## Install Dependencies
 
@@ -361,7 +378,7 @@ Major libraries used:
 
 # GPU Installation for Pytorch
     - `pip install torch --index-url https://download.pytorch.org/whl/cu121`
-    - Use CUDA if possible — training and inference are 10–20× faster
+        - Use CUDA if possible — training and inference are 10–20× faster
 
 ## How to Run the Code
 
@@ -375,8 +392,8 @@ python build_ingredient_dataset.py --max-pos 50000 --max-neg 50000
          data/ingredient_classifier/ (train/test splits for BERT)
 
 _run Concurrently_
-python -m uvicorn unified_api:app --reload --port 8000
-streamlit run frontend.py
+- `python -m uvicorn unified_api:app --reload --port 8000`
+- `streamlit run frontend.py`
 
     - Two Commands runs unified_api.py and frontend.py
     - Outputs Data Information
@@ -404,6 +421,8 @@ streamlit run frontend.py
     Will Be Stored in tools/reports
 
 # Summary 
+
+- Everything was written by me for this Project Prototype :smile:
 
 Ingredient Parsing
 
