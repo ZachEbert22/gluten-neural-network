@@ -27,6 +27,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 
 # Try to import tokenizer from your model dir
 from transformers import AutoTokenizer
@@ -208,69 +210,6 @@ def detection_accuracy_by_category(df, ingredient_col, pred_col=None, label_col=
         print("Saved 02_detection_by_heuristic_category.png and JSON")
         return out
 
-# -------------------------
-# 3) Confusion Matrix for Normalization
-# -------------------------
-def confusion_matrix_normalization(df, ingredient_col, pred_col=None, label_col=None):
-    """
-    Attempt confusion matrix between 'normalized' ground truth and predicted normalized labels.
-    If none exist, we try to normalize using normalize_ingredient and pretend predictions = same (no file).
-    """
-    from sklearn.metrics import confusion_matrix
-    raws = extract_ingredients_from_series(df[ingredient_col])
-    normalized = [normalize_ingredient(r) for r in raws]
-    # need preds: fallback attempt to load a predictions file
-    preds = None
-    preds_path = DATA_DIR / "predictions.csv"
-    if preds_path.exists():
-        try:
-            d = pd.read_csv(preds_path)
-            if "predicted" in d.columns:
-                preds = d["predicted"].astype(str).tolist()
-        except Exception:
-            preds = None
-
-    if preds is None:
-        # no preds available — produce a small similarity/confusion between manual tokens
-        # build a co-occurrence confusion of top N normalized tokens vs itself (identity)
-        cnt = Counter(normalized)
-        top = [k for k,_ in cnt.most_common(12)]
-        mat = np.zeros((len(top),len(top)), dtype=int)
-        label_to_idx = {k:i for i,k in enumerate(top)}
-        # mark diagonal counts
-        for n in normalized:
-            if n in label_to_idx:
-                mat[label_to_idx[n], label_to_idx[n]] += 1
-        plt.figure(figsize=(8,6))
-        plt.imshow(mat, cmap="Blues")
-        plt.colorbar()
-        plt.xticks(range(len(top)), top, rotation=45, ha='right')
-        plt.yticks(range(len(top)), top)
-        plt.title("Pseudo-Confusion (no preds available) — diagonal counts")
-        plt.tight_layout()
-        plt.savefig(PLOTS_DIR / "03_confusion_matrix_pseudo.png", dpi=150)
-        plt.close()
-        with open(STATS_DIR / "03_confusion_matrix_pseudo.json","w") as f:
-            json.dump({"top_labels": top, "matrix_shape": list(mat.shape)}, f, indent=2)
-        print("Saved 03_confusion_matrix_pseudo.png and JSON")
-        return {"status":"no_preds", "top_labels": top}
-    else:
-        # compute real confusion matrix
-        labs = list(sorted(set(normalized + preds)))
-        cm = confusion_matrix(normalized, preds, labels=labs)
-        plt.figure(figsize=(9,7))
-        plt.imshow(cm, cmap="Reds")
-        plt.colorbar()
-        plt.xticks(range(len(labs)), labs, rotation=45, ha='right')
-        plt.yticks(range(len(labs)), labs)
-        plt.title("Confusion matrix: normalized (true) vs preds")
-        plt.tight_layout()
-        plt.savefig(PLOTS_DIR / "03_confusion_matrix_real.png", dpi=150)
-        plt.close()
-        with open(STATS_DIR / "03_confusion_matrix_real.json","w") as f:
-            json.dump({"labels": labs, "matrix_shape": list(cm.shape)}, f, indent=2)
-        print("Saved 03_confusion_matrix_real.png and JSON")
-        return {"status":"ok", "labels": labs}
 
 # -------------------------
 # 4) Frequency Graph of Training Dataset Ingredients
@@ -351,46 +290,47 @@ def loss_vs_dataset_size(simulate=True, outfile_name="06_loss_vs_dataset_size.pn
         data/loss_curve.csv  (columns: dataset_size, train_loss, val_loss)
     Otherwise, we simulate a decaying loss curve.
     """
-    csvp = DATA_DIR / "loss_curve.csv"
-    if csvp.exists():
-        df = pd.read_csv(csvp)
-        plt.figure(figsize=(8,4))
-        plt.plot(df["dataset_size"], df["train_loss"], label="train")
-        if "val_loss" in df.columns:
-            plt.plot(df["dataset_size"], df["val_loss"], label="val")
-        plt.xlabel("dataset size")
-        plt.ylabel("loss")
-        plt.legend()
-        plt.title("Recorded loss vs dataset size")
-        plt.tight_layout()
-        plt.savefig(PLOTS_DIR / outfile_name, dpi=150)
-        plt.close()
-        print("Saved recorded loss curve")
-        with open(STATS_DIR / "06_loss_vs_dataset_size.json","w") as f:
-            json.dump({"source":"recorded", "rows": len(df)}, f, indent=2)
-        return True
-    else:
-        # simulate
-        sizes = np.array([5e3, 1e4, 2e4, 4e4, 8e4, 1.6e5])
-        # simulate decaying loss: L = a / (1 + b * log(N)) + noise
-        a = 2.2; b = 0.35
-        train_loss = a / (1 + b * np.log(sizes))
-        val_loss = a / (1 + b * np.log(sizes)) + 0.1/np.sqrt(np.log1p(sizes))
-        plt.figure(figsize=(8,4))
-        plt.plot(sizes, train_loss, label="train (sim)")
-        plt.plot(sizes, val_loss, label="val (sim)")
-        plt.xscale("log")
-        plt.xlabel("dataset size (log scale)")
-        plt.ylabel("loss (simulated)")
-        plt.legend()
-        plt.title("Simulated loss vs dataset size")
-        plt.tight_layout()
-        plt.savefig(PLOTS_DIR / outfile_name, dpi=150)
-        plt.close()
-        with open(STATS_DIR / "06_loss_vs_dataset_size.json","w") as f:
-            json.dump({"source":"simulated","sizes": sizes.tolist()}, f, indent=2)
-        print("Saved simulated loss curve")
-        return True
+    # ========================
+    # Editable inputs
+    # ========================
+
+    x = [10000, 20000, 30000, 40000, 50000]   # dataset sizes
+
+    eval_loss = [     # <= manually fill in
+        1.2, 1.1, 1.05, 1.03, 1.01
+    ]
+
+    train_loss = [    # <= manually fill in
+        0.007708, 0.003884, 0.002812, 0.002138, 0.001655
+    ]
+
+    # ========================
+    # Graph A: Evaluation Loss
+    # ========================
+
+    import matplotlib.pyplot as plt
+
+    plt.figure()
+    plt.plot(x, eval_loss, marker='o')
+    plt.xlabel("Dataset Size")
+    plt.ylabel("Evaluation Loss")
+    plt.title("Evaluation Loss vs Dataset Size")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # ========================
+    # Graph B: Training Loss
+    # ========================
+
+    plt.figure()
+    plt.plot(x, train_loss, marker='o')
+    plt.xlabel("Dataset Size")
+    plt.ylabel("Training Loss")
+    plt.title("Training Loss vs Dataset Size")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 # -------------------------
 # Main runner
@@ -421,9 +361,6 @@ def main():
 
     # 2
     dcat = detection_accuracy_by_category(df, ing_col, pred_col=None, label_col=None)
-
-    # 3
-    conf = confusion_matrix_normalization(df, ing_col)
 
     # 4
     freq = dataset_frequency_graph(df, ing_col)
