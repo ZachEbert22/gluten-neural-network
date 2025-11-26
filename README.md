@@ -8,10 +8,15 @@ Built using ingredient parsing, BERT classification, semantic substitution, GISM
     
 ## Dependency
 - Highly Recommend COnda, or a least python3.10. Cuda doesnt support 3.12 yet
+
 `conda create --name test python=3.10`
+
 `conda install pytorch torchvision torchaudio cudatoolkit=11.7 -c pytorch`
+
 `pip install torch datasets kagglehub scikit-learn beautifulsoup4 requests transformers fastapi uvicorn streamlit pandas seaborn`
+
 `pip install transformers[torch]`
+
 ## How to Run
 `python build_ingredient_dataset.py --max-pos 50000 --max-neg 50000`
 
@@ -21,7 +26,36 @@ Built using ingredient parsing, BERT classification, semantic substitution, GISM
 
 `streamlit run frontend.py`
 
+## WARNING
 
+-Please Make sure you have the Correct Nvidia Drivers for this. If you dont and try and train on your cpu, it will take hours/days
+
+- Whenever you run the build command, it will saying "using device:" If it says cuda, you are good to go, if it says cpu, please make sure you have the correct drivers
+
+- You can check with `nvidia-smi` and running my command `python tools/systeminfo.py`
+
+- If you dont have the correct drivers, you will have to reinstall with a nomral driver version <550+
+
+## NVIDIA DRIVER TROUBLESHOOTING
+-Uninstall Using:
+
+`sudo apt remove --purge '^nvidia-.*' 'cuda-.*' 'libnvidia.*' -y`
+
+`sudo apt autoremove -y`
+
+`sudo rm -rf /usr/local/cuda*`
+
+`sudo rm -rf /usr/lib/nvidia*`
+
+sudo reboot
+
+## Nvidia Driver Reinstall 
+
+-Reinstall Using:
+
+`sudo apt install nvidia-driver-550`
+
+sudo reboot again and it should fix it. Check using my tools/systeminfo.py again
 
 ## Test Cases
     - https://www.loveandlemons.com/brownies-recipe/
