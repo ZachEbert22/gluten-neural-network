@@ -3,21 +3,24 @@ An end-to-end AI system that converts any recipe — URL or text — into a full
 Built using ingredient parsing, BERT classification, semantic substitution, GISMo graph reasoning, and a unified FastAPI + Streamlit interface.
 
 # Overview
-    - Everything was written by me
+ 1) ingredient parsing → classification → gluten detection → semantic substitution → recipe rewriting
+ 2) Everything was written by me
     
 ## Dependency
-    - pip install -r docs/requirements.txt
+`pip install -r docs/requirements.txt`
 
 ## How to Run
-    - python build_ingredient_dataset.py --max-pos 50000 --max-neg 50000
-    - python3 train_ingredient_classifier.py
-    - python -m uvicorn unified_api:app --reload --port 8000
-    - streamlit run frontend.py
+`python build_ingredient_dataset.py --max-pos 50000 --max-neg 50000`
+
+`python3 train_ingredient_classifier.py`
+
+`python -m uvicorn unified_api:app --reload --port 8000`
+
+`streamlit run frontend.py`
 
 ## Test Cases
     - https://www.loveandlemons.com/brownies-recipe/
     - 2.75 cups of all-purpose flour
-
 
 # Introduction
 
@@ -45,43 +48,51 @@ Includes:
 # Locations
 
 root/
-    - build_ingredient_dataset.py
-    - frontend.py
-    - mlp_model.py
-    - substitution_pipeline.py
-    - train_ingredient_classifier.py
-    - unfied_api.py
+1) build_ingredient_dataset.py
+    
+2) frontend.py
+    
+3) mlp_model.py
+    
+4) substitution_pipeline.py
+    
+5) train_ingredient_classifier.py
+    
+6) unfied_api.py
 
 data/
-    - ingredients.json
-    - substitutions.json
-    - ingredient_dataset/          <- auto-created
-    - ingredient_classifier/       <- auto-created
+1) ingredients.json
+    
+2) substitutions.json
+    
+3) ingredient_dataset/          <- auto-created
+    
+4) ingredient_classifier/       <- auto-created
 
 models/
-    - bert_embedder.py
-    - food_ner.py
-    - share_rewriter.py
-    - gluten_model.py              <- older model
-    - ingredient_classifier/       <- config, tokenizer, vocab, weights
+1) bert_embedder.py
+2) food_ner.py
+3) share_rewriter.py
+4) gluten_model.py              <- older model
+5) ingredient_classifier/       <- config, tokenizer, vocab, weights
 
 utils/
-    - ingredient_parser.py
-    - gismo.py
-    - normalization.py
-    - model_loader.py
-    - gluten_check.py
-    - parser.py
-    - substitution.py
+1) ingredient_parser.py
+2) gismo.py
+3) normalization.py
+4) model_loader.py
+5) gluten_check.py
+6) parser.py
+7) substitution.py
 
 tools/
-    - backend.py      <- creates training graphs
-    - core.py
-    - confusion_matrix.py
-    - models.py
-    - datasets.py
-    - reports/        <- output
-    - system_info.py
+1) backend.py      <- creates training graphs
+2) core.py
+3) confusion_matrix.py
+4) models.py
+5) datasets.py
+6) reports/        <- output
+7) system_info.py
 
 # Each Script Description 
 
@@ -213,8 +224,14 @@ List of all required Python packages.
 ### **`system_requirements.txt`**
 Exact versions tested on GPU and CPU systems.
 
-### **`PowerPoint.docx'**
+### **`PresentationInformation.docx`**
 Content that will go Into the Poster and Powerpoint (Code Demo)
+
+### **`Poster.pdf`**
+Poster that was Delivered
+
+### **`Powerpoint.pptx`**
+Pointpoint used for party of the presentation
 
 ## Models (models/)
 
