@@ -7,8 +7,11 @@ Built using ingredient parsing, BERT classification, semantic substitution, GISM
  2) Everything was written by me
     
 ## Dependency
-`pip install -r docs/requirements.txt`
-
+- Highly Recommend COnda, or a least python3.10. Cuda doesnt support 3.12 yet
+`conda create --name test python=3.10`
+`conda install pytorch torchvision torchaudio cudatoolkit=11.7 -c pytorch`
+`pip install torch datasets kagglehub scikit-learn beautifulsoup4 requests transformers fastapi uvicorn streamlit pandas seaborn`
+`pip install transformers[torch]`
 ## How to Run
 `python build_ingredient_dataset.py --max-pos 50000 --max-neg 50000`
 
@@ -17,6 +20,8 @@ Built using ingredient parsing, BERT classification, semantic substitution, GISM
 `python -m uvicorn unified_api:app --reload --port 8000`
 
 `streamlit run frontend.py`
+
+
 
 ## Test Cases
     - https://www.loveandlemons.com/brownies-recipe/
