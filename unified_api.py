@@ -50,21 +50,95 @@ class ProcessRequest(BaseModel):
 # ---------- REPLACEMENT: robust extract_from_url ----------
 
 def extract_from_url(url: str):
-    """Return (ingredient_lines, instructions_text) extracted cleanly from a recipe page."""
+    """
+    Robust recipe extractor that handles:
+      - normal HTML pages
+      - JSON-LD structured recipe data
+      - JS-rendered pages with hidden ingredient text
+      - non-HTML pages that embed recipe text
+      - fallback heuristics for URLs with no recognizable structure
+    """
+    import requests, re, json
+    from bs4 import BeautifulSoup
+
+    # ----------------------------------------------------------------------
+    # 1) Fetch content
+    # ----------------------------------------------------------------------
     try:
-        r = requests.get(url, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
+        r = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+        content_type = r.headers.get("Content-Type", "").lower()
+        text = r.text
     except Exception:
         return [], ""
 
-    # --------- Clean out obviously irrelevant containers ---------
+    # ----------------------------------------------------------------------
+    # 2) Handle NON-HTML content (JSON, plain text, XML, strange MIME types)
+    # ----------------------------------------------------------------------
+    if "html" not in content_type:
+        # Try to detect ingredient-like lines in plain text
+        possible_lines = text.splitlines()
+        ing_guess = [
+            l.strip() for l in possible_lines
+            if re.search(r"(cup|tsp|tbsp|gram|salt|flour|sugar|egg|milk)", l, re.I)
+        ]
+        return ing_guess[:20], ""  # return partial rather than failing
+
+    soup = BeautifulSoup(text, "html.parser")
+
+    # ----------------------------------------------------------------------
+    # 3) JSON-LD Structured Data (the MOST reliable path)
+    # ----------------------------------------------------------------------
+    try:
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                data = json.loads(script.string)
+                # Sometimes it's a list; find the Recipe object
+                if isinstance(data, list):
+                    for item in data:
+                        if item.get("@type") == "Recipe":
+                            data = item
+                            break
+
+                if isinstance(data, dict) and data.get("@type") == "Recipe":
+                    # Ingredients
+                    ing = data.get("recipeIngredient", []) or []
+                    ing = [i.strip() for i in ing if i.strip()]
+
+                    # Instructions (can be list or string)
+                    inst_raw = data.get("recipeInstructions", "")
+                    instructions = ""
+
+                    if isinstance(inst_raw, list):
+                        steps = []
+                        for step in inst_raw:
+                            if isinstance(step, dict) and "text" in step:
+                                steps.append(step["text"])
+                            elif isinstance(step, str):
+                                steps.append(step)
+                        instructions = "\n".join(steps)
+                    elif isinstance(inst_raw, str):
+                        instructions = inst_raw
+
+                    if ing:
+                        return ing, instructions.strip()
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # ----------------------------------------------------------------------
+    # 4) Clean irrelevant HTML parts
+    # ----------------------------------------------------------------------
     for junk in soup.select(
-        "header, footer, nav, script, style, noscript, .comments, #comments, .comment-list, "
-        ".related-posts, .sidebar, .footer, .advertisement, .ad, .promo"
+        "header, footer, nav, script, style, noscript, .comments, #comments, "
+        ".comment-list, .related-posts, .sidebar, .footer, .advertisement, "
+        ".ad, .promo, .cookie-banner"
     ):
         junk.decompose()
 
-    # --------- INGREDIENT SELECTORS ---------
+    # ----------------------------------------------------------------------
+    # 5) Direct ingredient selectors
+    # ----------------------------------------------------------------------
     selectors = [
         '[itemprop="recipeIngredient"]',
         "li.ingredient",
@@ -74,7 +148,6 @@ def extract_from_url(url: str):
         "li.ingredients-item",
         ".recipe-ingredients__list-item",
     ]
-
     ing_lines = []
     for sel in selectors:
         for tag in soup.select(sel):
@@ -82,14 +155,28 @@ def extract_from_url(url: str):
             if txt:
                 ing_lines.append(txt)
 
-    # Fallback: try bullet lists that LOOK like ingredients
+    # ----------------------------------------------------------------------
+    # 6) Fallback: <li> with ingredient-like patterns
+    # ----------------------------------------------------------------------
     if not ing_lines:
         for li in soup.find_all("li"):
             t = li.get_text(" ", strip=True)
-            if re.search(r'\b(cup|tsp|tablespoon|gram|salt|sugar|flour|butter)\b', t, re.I):
+            if re.search(r"(cup|tsp|tablespoon|gram|salt|sugar|flour|egg|milk)", t, re.I):
                 ing_lines.append(t)
 
-    # --------- INSTRUCTIONS SELECTORS ---------
+    # ----------------------------------------------------------------------
+    # 7) Fallback: ANY text block containing ingredient-like patterns
+    # ----------------------------------------------------------------------
+    if not ing_lines:
+        body_text = soup.get_text("\n", strip=True)
+        lines = body_text.splitlines()
+        for l in lines:
+            if re.search(r"(cup|tsp|tbsp|oz|gram|salt|sugar|flour|egg|milk)", l, re.I):
+                ing_lines.append(l.strip())
+
+    # ----------------------------------------------------------------------
+    # 8) Instructions extraction
+    # ----------------------------------------------------------------------
     instr_selectors = [
         '[itemprop="recipeInstructions"]',
         ".wprm-recipe-instruction-text",
@@ -100,7 +187,6 @@ def extract_from_url(url: str):
         "ol.instructions",
         "ol.method",
     ]
-
     instructions_text = ""
     for sel in instr_selectors:
         tags = soup.select(sel)
@@ -117,21 +203,20 @@ def extract_from_url(url: str):
             text = p.get_text(" ", strip=True)
             if re.search(verbs, text, re.I):
                 candidates.append(text)
-        instructions_text = "\n".join(candidates[:10])
+        instructions_text = "\n".join(candidates[:12])
 
-    # --------- Final clean: remove comments, dates, "Reply ↓" ---------
+    # ----------------------------------------------------------------------
+    # 9) Remove junk lines
+    # ----------------------------------------------------------------------
     bad_patterns = [
         r"\b\d{1,2}\.\d{1,2}\.\d{4}\b",
         r"Reply\s*↓",
         r"^\s*[A-Za-z]+ \d{1,2}, \d{4}",
         r"^\s*\d{1,2}\s*$",
-        r"Healthy Muffin Recipes",
-        r"Baking Dish",
+        r"Muffin Recipes",
     ]
-
     clean_ing = []
     seen = set()
-
     for l in ing_lines:
         l = re.sub(r"\s+", " ", l).strip()
         if any(re.search(bp, l, re.I) for bp in bad_patterns):
@@ -141,7 +226,6 @@ def extract_from_url(url: str):
             seen.add(l)
 
     return clean_ing, instructions_text.strip()
-
 
 # ---------------------------------------------------------------------
 # MODEL LOADING REGISTRY

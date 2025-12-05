@@ -2,23 +2,24 @@
 
 pip install torch transformers datasets pandas streamlit scikit-learn beautifulsoup4 requests
 
-python build_ingredient_dataset.py --max-pos 10000 --max-neg 10000
-python build_ingredient_dataset.py --max-pos 20000 --max-neg 20000
 python build_ingredient_dataset.py --max-pos 30000 --max-neg 30000
-python build_ingredient_dataset.py --max-pos 40000 --max-neg 40000
-python build_ingredient_dataset.py --max-pos 50000 --max-neg 50000
-python3 build_ingredient_dataset.py
-
 python3 train_ingredient_classifier.py
 
 python -m uvicorn unified_api:app --reload --port 8000
 streamlit run frontend.py
 
-https://www.bbcgoodfood.com/recipes/fruit-spice-soda-bread
+Websites to Try:
+    https://www.bbcgoodfood.com/recipes/fruit-spice-soda-bread
 
-https://www.loveandlemons.com/brownies-recipe/
+    https://tastesbetterfromscratch.com/classic-french-toast/
 
-https://www.allrecipes.com/recipe/16895/fluffy-french-toast/
+    https://www.loveandlemons.com/fettuccine-alfredo-recipe/
+
+    https://www.kingarthurbaking.com/recipes/creamy-tomato-soup-recipe
+
+    https://www.loveandlemons.com/brownies-recipe/
+
+    https://www.loveandlemons.com/french-toast/
 
 2.75 cups of all-purpose flour
 2 teaspoons of cornstarch
@@ -32,3 +33,9 @@ https://www.allrecipes.com/recipe/16895/fluffy-french-toast/
 1.75 cups dark and milk chocolate chunks (or chopped chocolate bars)
 2 Cups of wholemeal Flour
 3 loafs of Bread
+
+It supresses Irrelevant Regions, How does the Model Decide whats Irrelevant
+
+What Made you decide to not use a transformer for the 1024 Bottleneck?
+
+
